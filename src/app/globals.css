@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap');
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    font-family: 'Sarabun', sans-serif;
+  }
+  body {
+    @apply bg-wrapper text-slate-800;
+  }
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: #172944;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #2d5086;
+  border-radius: 2px;
+}
+
+/* Smooth sidebar item transition */
+.sidebar-item-link {
+  transition: background 0.15s, color 0.15s;
+}
+
+/* Chart gradient */
+.chart-gradient-line {
+  fill: url(#chartGradient);
+}
