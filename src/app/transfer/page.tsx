@@ -1,119 +1,138 @@
 "use client";
 
-import { useState } from "react";
-import PageShell from "@/components/PageShell";
-import { ArrowRight, Plus, CheckCircle } from "lucide-react";
-import clsx from "clsx";
+import { useState, useEffect } from "react";
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import { ArrowRightLeft, Plus, X, Package } from "lucide-react";
+import { supabase, STORE_ID } from "@/lib/supabase/browser";
 
-const BRANCHES = ["สาขาสุขุมวิท (หลัก)", "สาขาสีลม", "สาขาอโศก"];
-const PRODUCTS = [
-  { id:"p1", name:"ครัวซองต์เนย", emoji:"🥐", stock:20 },
-  { id:"p2", name:"กาแฟลาเต้",    emoji:"☕", stock:50 },
-  { id:"p3", name:"ชีสเค้ก",      emoji:"🍰", stock:6  },
-  { id:"p4", name:"โดนัทกลาเซ่",  emoji:"🍩", stock:18 },
+type Product = { id: string; name: string; emoji: string; stock: number };
+type Transfer = { id: number; from: string; to: string; product: string; qty: number; date: string; status: "completed" | "pending" };
+
+const BRANCHES = ["สาขาหลัก (สยาม)", "สาขา 2 (อโศก)", "คลังสินค้า"];
+const INIT_TRANSFERS: Transfer[] = [
+  { id: 1, from: "สาขาหลัก (สยาม)", to: "สาขา 2 (อโศก)", product: "ครัวซองต์เนย", qty: 10, date: "2026-03-10", status: "completed" },
+  { id: 2, from: "คลังสินค้า", to: "สาขาหลัก (สยาม)", product: "ชานมไข่มุก", qty: 20, date: "2026-03-12", status: "pending" },
 ];
-
-interface Transfer { id:string; date:string; from:string; to:string; items:{name:string;emoji:string;qty:number}[]; status:string }
-
-const HISTORY: Transfer[] = [
-  { id:"t1", date:"14/03/2026", from:"สาขาสุขุมวิท (หลัก)", to:"สาขาสีลม",  items:[{name:"ครัวซองต์เนย",emoji:"🥐",qty:5},{name:"กาแฟลาเต้",emoji:"☕",qty:10}], status:"completed" },
-  { id:"t2", date:"12/03/2026", from:"สาขาอโศก",            to:"สาขาสีลม",  items:[{name:"ชีสเค้ก",emoji:"🍰",qty:3}], status:"completed" },
-];
+let nextId = 10;
 
 export default function TransferPage() {
-  const [from, setFrom] = useState(BRANCHES[0]);
-  const [to, setTo] = useState(BRANCHES[1]);
-  const [items, setItems] = useState<{id:string;name:string;emoji:string;qty:number}[]>([]);
-  const [done, setDone] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [transfers, setTransfers] = useState<Transfer[]>(INIT_TRANSFERS);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [modal, setModal] = useState(false);
+  const [form, setForm] = useState({ from: BRANCHES[0], to: BRANCHES[1], productId: "", qty: "" });
 
-  const addItem = (p: typeof PRODUCTS[0]) => {
-    if (items.find(i=>i.id===p.id)) return;
-    setItems(prev => [...prev, {...p, qty:1}]);
+  useEffect(() => {
+    supabase.from("products").select("id, name, emoji, stock").eq("store_id", STORE_ID).then(({ data }) => {
+      if (data) setProducts(data as Product[]);
+    });
+  }, []);
+
+  const save = () => {
+    const prod = products.find(p => p.id === form.productId);
+    if (!prod) return;
+    setTransfers(p => [{ id: nextId++, from: form.from, to: form.to, product: prod.name, qty: parseInt(form.qty) || 0, date: new Date().toISOString().split("T")[0], status: "pending" }, ...p]);
+    setModal(false);
   };
-  const updateQty = (id:string, qty:number) => setItems(prev => prev.map(i=>i.id===id?{...i,qty}:i).filter(i=>i.qty>0));
-
-  const submit = () => { setDone(true); setTimeout(()=>{setDone(false);setItems([]);},2000); };
 
   return (
-    <PageShell>
-      <div className="p-5 space-y-4">
-        <h1 className="text-xl font-bold text-slate-800">โอนสินค้าระหว่างสาขา</h1>
-
-        <div className="bg-white rounded-2xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">จากสาขา</label>
-              <select value={from} onChange={e=>setFrom(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
-                {BRANCHES.map(b=><option key={b}>{b}</option>)}
-              </select>
+    <>
+      <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
+      <div className="flex" style={{ marginTop: 50 }}>
+        {sidebarOpen && <Sidebar />}
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+          <div className="p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-slate-800">โอนสินค้าระหว่างสาขา</h1>
+              <button onClick={() => { setForm({ from: BRANCHES[0], to: BRANCHES[1], productId: "", qty: "" }); setModal(true); }}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+                <Plus size={16} /> สร้างรายการโอน
+              </button>
             </div>
-            <ArrowRight size={24} className="text-slate-400 flex-shrink-0 mt-5" />
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">ไปสาขา</label>
-              <select value={to} onChange={e=>setTo(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
-                {BRANCHES.filter(b=>b!==from).map(b=><option key={b}>{b}</option>)}
-              </select>
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    <th className="text-left px-4 py-3 text-slate-500 font-medium">วันที่</th>
+                    <th className="text-left px-4 py-3 text-slate-500 font-medium">จาก</th>
+                    <th className="text-left px-4 py-3 text-slate-500 font-medium">ไปยัง</th>
+                    <th className="text-left px-4 py-3 text-slate-500 font-medium">สินค้า</th>
+                    <th className="text-center px-4 py-3 text-slate-500 font-medium">จำนวน</th>
+                    <th className="text-center px-4 py-3 text-slate-500 font-medium">สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transfers.map(t => (
+                    <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3 text-slate-500">{new Date(t.date).toLocaleDateString("th-TH")}</td>
+                      <td className="px-4 py-3 text-slate-700">{t.from}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1 text-slate-700"><ArrowRightLeft size={12} className="text-blue-400" />{t.to}</div>
+                      </td>
+                      <td className="px-4 py-3 font-medium text-slate-700">{t.product}</td>
+                      <td className="px-4 py-3 text-center font-bold">{t.qty}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${t.status === "completed" ? "bg-emerald-100 text-emerald-600" : "bg-amber-100 text-amber-600"}`}>
+                          {t.status === "completed" ? "เสร็จสิ้น" : "รอดำเนินการ"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {transfers.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
+                  <ArrowRightLeft size={40} strokeWidth={1} /><p>ยังไม่มีรายการโอน</p>
+                </div>
+              )}
             </div>
           </div>
-
-          <div>
-            <p className="text-sm font-medium text-slate-700 mb-2">เลือกสินค้า</p>
-            <div className="grid grid-cols-4 gap-2 mb-3">
-              {PRODUCTS.map(p => (
-                <button key={p.id} onClick={()=>addItem(p)}
-                  className={clsx("bg-slate-50 rounded-xl p-3 text-center text-sm hover:bg-blue-50 border-2 transition-all",
-                    items.find(i=>i.id===p.id)?"border-blue-400":"border-transparent"
-                  )}>
-                  <div className="text-2xl mb-1">{p.emoji}</div>
-                  <div className="font-medium text-slate-700 text-[12px]">{p.name}</div>
-                  <div className="text-[11px] text-slate-400">คงเหลือ {p.stock}</div>
-                </button>
-              ))}
-            </div>
-
-            {items.length > 0 && (
-              <div className="space-y-2">
-                {items.map(item => (
-                  <div key={item.id} className="flex items-center gap-3 bg-blue-50 rounded-xl px-3 py-2">
-                    <span className="text-xl">{item.emoji}</span>
-                    <span className="flex-1 text-sm font-medium">{item.name}</span>
-                    <input type="number" min={1} value={item.qty} onChange={e=>updateQty(item.id,parseInt(e.target.value)||0)}
-                      className="w-16 border border-slate-200 rounded-lg px-2 py-1 text-sm text-center focus:outline-none" />
-                    <span className="text-xs text-slate-400">ชิ้น</span>
-                    <button onClick={()=>updateQty(item.id,0)} className="text-slate-400 hover:text-red-400">×</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button onClick={submit} disabled={items.length===0||from===to}
-            className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-40 flex items-center justify-center gap-2">
-            {done ? <><CheckCircle size={16}/>โอนสำเร็จ!</> : "ยืนยันการโอน"}
-          </button>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b font-semibold text-slate-700">ประวัติการโอน</div>
-          {HISTORY.map(h => (
-            <div key={h.id} className="px-5 py-3 border-b border-slate-50 hover:bg-slate-50">
-              <div className="flex items-center gap-2 text-sm mb-1">
-                <span className="font-medium text-slate-800">{h.from}</span>
-                <ArrowRight size={12} className="text-slate-400" />
-                <span className="font-medium text-slate-800">{h.to}</span>
-                <span className="ml-auto text-slate-400">{h.date}</span>
-              </div>
-              <div className="flex gap-2">
-                {h.items.map((item,i) => (
-                  <span key={i} className="text-[11px] bg-slate-100 px-2 py-0.5 rounded-full">{item.emoji} {item.name} ×{item.qty}</span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        </main>
       </div>
-    </PageShell>
+      {modal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setModal(false)}>
+          <div className="bg-white rounded-2xl p-6 w-96 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-lg">สร้างรายการโอนสินค้า</h2>
+              <button onClick={() => setModal(false)} className="text-slate-400"><X size={20} /></button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">จากสาขา</label>
+                <select value={form.from} onChange={e => setForm(p => ({ ...p, from: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
+                  {BRANCHES.map(b => <option key={b}>{b}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">ไปยังสาขา</label>
+                <select value={form.to} onChange={e => setForm(p => ({ ...p, to: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
+                  {BRANCHES.map(b => <option key={b}>{b}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">สินค้า</label>
+                <select value={form.productId} onChange={e => setForm(p => ({ ...p, productId: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
+                  <option value="">-- เลือกสินค้า --</option>
+                  {products.map(p => <option key={p.id} value={p.id}>{p.emoji} {p.name} (คงเหลือ: {p.stock})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 block mb-1">จำนวน</label>
+                <input type="number" min="1" value={form.qty} onChange={e => setForm(p => ({ ...p, qty: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">ยกเลิก</button>
+              <button onClick={save} disabled={!form.productId || !form.qty} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">สร้างรายการ</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

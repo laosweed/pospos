@@ -1,84 +1,125 @@
 "use client";
 
 import { useState } from "react";
-import PageShell from "@/components/PageShell";
-import { Plus, Edit2 } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import { Plus, Edit2, Trash2, Layers, X } from "lucide-react";
 
-interface Level { id:string; name:string; color:string; discount:number; minPoints:number; members:number }
-
-const DEMO: Level[] = [
-  { id:"l1", name:"ทั่วไป",      color:"#94a3b8", discount:0,  minPoints:0,    members:120 },
-  { id:"l2", name:"ทองแดง",     color:"#b45309", discount:5,  minPoints:100,  members:45  },
-  { id:"l3", name:"เงิน",        color:"#64748b", discount:10, minPoints:500,  members:28  },
-  { id:"l4", name:"ทอง",         color:"#f59e0b", discount:15, minPoints:1000, members:12  },
-  { id:"l5", name:"เพชร",        color:"#06b6d4", discount:20, minPoints:5000, members:3   },
+type Level = { id: number; name: string; discount: number; color: string };
+const COLORS = ["#3b82f6","#10b981","#f59e0b","#ef4444","#8b5cf6","#ec4899"];
+const INIT: Level[] = [
+  { id: 1, name: "ราคาปลีก", discount: 0, color: "#3b82f6" },
+  { id: 2, name: "ราคาสมาชิก", discount: 5, color: "#10b981" },
+  { id: 3, name: "ราคาส่ง", discount: 15, color: "#f59e0b" },
 ];
+let nextId = 10;
 
 export default function PriceLevelsPage() {
-  const [levels] = useState(DEMO);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [levels, setLevels] = useState<Level[]>(INIT);
+  const [modal, setModal] = useState(false);
+  const [editing, setEditing] = useState<Level | null>(null);
+  const [form, setForm] = useState({ name: "", discount: "", color: COLORS[0] });
+
+  const open = (l?: Level) => { setEditing(l ?? null); setForm(l ? { name: l.name, discount: String(l.discount), color: l.color } : { name: "", discount: "", color: COLORS[0] }); setModal(true); };
+  const save = () => {
+    const d: Level = { id: editing?.id ?? nextId++, name: form.name, discount: parseFloat(form.discount) || 0, color: form.color };
+    setLevels(p => editing ? p.map(l => l.id === editing.id ? d : l) : [...p, d]);
+    setModal(false);
+  };
 
   return (
-    <PageShell>
-      <div className="p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-800">ระดับราคา / ระดับสมาชิก</h1>
-          <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700">
-            <Plus size={15}/> เพิ่มระดับ
-          </button>
-        </div>
-
-        <div className="grid grid-cols-5 gap-3">
-          {levels.map(l => (
-            <div key={l.id} className="bg-white rounded-2xl p-4 shadow-sm text-center">
-              <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center text-white font-bold text-lg"
-                style={{ background: l.color }}>
-                {l.name[0]}
-              </div>
-              <p className="font-bold text-slate-800">{l.name}</p>
-              <p className="text-[22px] font-bold mt-1" style={{ color:l.color }}>
-                {l.discount > 0 ? `${l.discount}%` : "-"}
-              </p>
-              <p className="text-[11px] text-slate-400 mt-0.5">ส่วนลด</p>
-              <p className="text-[12px] text-slate-500 mt-2">{l.minPoints.toLocaleString()} แต้มขึ้นไป</p>
-              <p className="text-[11px] text-slate-400">{l.members} สมาชิก</p>
-              <button className="mt-3 p-1.5 text-slate-400 hover:text-blue-500 rounded-lg">
-                <Edit2 size={13}/>
+    <>
+      <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
+      <div className="flex" style={{ marginTop: 50 }}>
+        {sidebarOpen && <Sidebar />}
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+          <div className="p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-slate-800">ระดับราคา</h1>
+              <button onClick={() => open()} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+                <Plus size={16} /> เพิ่มระดับราคา
               </button>
             </div>
-          ))}
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b font-semibold text-slate-700">เปรียบเทียบสิทธิประโยชน์</div>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50">
-                <th className="text-left px-4 py-2.5 text-slate-500 font-medium">ระดับ</th>
-                <th className="text-center px-4 py-2.5 text-slate-500 font-medium">แต้มขั้นต่ำ</th>
-                <th className="text-center px-4 py-2.5 text-slate-500 font-medium">ส่วนลด</th>
-                <th className="text-center px-4 py-2.5 text-slate-500 font-medium">จำนวนสมาชิก</th>
-              </tr>
-            </thead>
-            <tbody>
-              {levels.map(l => (
-                <tr key={l.id} className="border-t border-slate-50 hover:bg-slate-50">
-                  <td className="px-4 py-3">
+            <div className="grid grid-cols-3 gap-4">
+              {levels.map((l, i) => (
+                <div key={l.id} className="bg-white rounded-xl p-5 shadow-sm border-t-4" style={{ borderColor: l.color }}>
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ background:l.color }}/>
-                      <span className="font-medium">{l.name}</span>
+                      <Layers size={16} style={{ color: l.color }} />
+                      <span className="font-semibold text-slate-800">{l.name}</span>
+                      {i === 0 && <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">ค่าเริ่มต้น</span>}
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-center">{l.minPoints.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-center font-semibold" style={{ color:l.color }}>
-                    {l.discount > 0 ? `${l.discount}%` : "-"}
-                  </td>
-                  <td className="px-4 py-3 text-center">{l.members}</td>
-                </tr>
+                    <div className="flex gap-1">
+                      <button onClick={() => open(l)} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg"><Edit2 size={14} /></button>
+                      {i > 0 && <button onClick={() => setLevels(p => p.filter(x => x.id !== l.id))} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={14} /></button>}
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <p className="text-[12px] text-slate-500">ส่วนลดจากราคาปลีก</p>
+                    <p className="text-3xl font-bold mt-1" style={{ color: l.color }}>{l.discount}%</p>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+            <div className="bg-white rounded-xl p-5 shadow-sm">
+              <h2 className="font-semibold text-slate-700 mb-3">ตัวอย่างราคาสินค้า (ราคาปลีก 100 ฿)</h2>
+              <div className="overflow-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100">
+                      <th className="text-left pb-2 text-slate-500 font-medium">ระดับราคา</th>
+                      <th className="text-right pb-2 text-slate-500 font-medium">ส่วนลด</th>
+                      <th className="text-right pb-2 text-slate-500 font-medium">ราคาที่จ่าย</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {levels.map(l => (
+                      <tr key={l.id} className="border-b border-slate-50">
+                        <td className="py-2.5 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full" style={{ background: l.color }} />{l.name}
+                        </td>
+                        <td className="py-2.5 text-right text-slate-500">{l.discount}%</td>
+                        <td className="py-2.5 text-right font-bold" style={{ color: l.color }}>{(100 - l.discount).toFixed(0)} ฿</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
-    </PageShell>
+      {modal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setModal(false)}>
+          <div className="bg-white rounded-2xl p-6 w-80 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-lg">{editing ? "แก้ไข" : "เพิ่ม"}ระดับราคา</h2>
+              <button onClick={() => setModal(false)} className="text-slate-400"><X size={20} /></button>
+            </div>
+            <div className="space-y-3">
+              <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="ชื่อระดับราคา"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
+              <input value={form.discount} onChange={e => setForm(p => ({ ...p, discount: e.target.value }))} placeholder="ส่วนลด %" type="number" min="0" max="100"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
+              <div>
+                <p className="text-sm text-slate-600 mb-2">สี</p>
+                <div className="flex gap-2">
+                  {COLORS.map(c => (
+                    <button key={c} onClick={() => setForm(p => ({ ...p, color: c }))}
+                      className="w-7 h-7 rounded-full border-2 transition-transform hover:scale-110"
+                      style={{ background: c, borderColor: form.color === c ? "#1e293b" : "transparent" }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">ยกเลิก</button>
+              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">บันทึก</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

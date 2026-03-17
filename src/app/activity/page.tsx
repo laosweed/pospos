@@ -1,81 +1,111 @@
 "use client";
 
-import { useState } from "react";
-import PageShell from "@/components/PageShell";
-import { Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import { ShoppingCart, Package, Activity } from "lucide-react";
+import { supabase, STORE_ID } from "@/lib/supabase/browser";
 
-const ACTIVITIES = [
-  { id:"a1",  time:"15/03/2026 14:32", user:"ชนิ่น",  action:"ขายสินค้า",           detail:"บิล R001234 ยอด 175.00 ฿",        type:"sale"     },
-  { id:"a2",  time:"15/03/2026 14:15", user:"ชนิ่น",  action:"เพิ่มสินค้า",          detail:"เพิ่มสินค้าใหม่: ครัวซองต์เนย",   type:"product"  },
-  { id:"a3",  time:"15/03/2026 13:50", user:"สมหมาย", action:"แก้ไขราคาสินค้า",       detail:"กาแฟลาเต้: 60 ฿ → 65 ฿",         type:"product"  },
-  { id:"a4",  time:"15/03/2026 13:15", user:"สมหมาย", action:"ขายสินค้า",           detail:"บิล R001233 ยอด 70.00 ฿",          type:"sale"     },
-  { id:"a5",  time:"15/03/2026 12:30", user:"ชนิ่น",  action:"เข้าสู่ระบบ",          detail:"จาก 192.168.1.10 (iPad POS #1)",   type:"auth"     },
-  { id:"a6",  time:"15/03/2026 11:00", user:"ชนิ่น",  action:"ปรับสต็อก",           detail:"โดนัทกลาเซ่: 15 → 18 ชิ้น",       type:"stock"    },
-  { id:"a7",  time:"15/03/2026 10:45", user:"สมหมาย", action:"เบิกสินค้า",           detail:"แป้งสาลี 5 หน่วย, เนยสด 2 หน่วย", type:"stock"    },
-  { id:"a8",  time:"15/03/2026 10:00", user:"ชนิ่น",  action:"เพิ่มลูกค้าใหม่",      detail:"มาลี รักชาติ - 088-901-2345",      type:"customer" },
-  { id:"a9",  time:"15/03/2026 09:30", user:"สมหมาย", action:"เข้าสู่ระบบ",          detail:"จาก 192.168.1.11 (iPhone)",        type:"auth"     },
-  { id:"a10", time:"14/03/2026 17:00", user:"ชนิ่น",  action:"รับสินค้า",           detail:"PO-0012 จาก บจ.เบเกอรี่ซัพพลาย",  type:"stock"    },
-];
+function thb(v: number) { return v.toLocaleString("th-TH", { minimumFractionDigits: 2 }); }
+function fmtDate(s: string) {
+  const d = new Date(s);
+  return d.toLocaleDateString("th-TH") + " " + d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+}
 
-const TYPE_COLORS: Record<string,{color:string;bg:string;icon:string}> = {
-  sale:     { color:"#3b82f6", bg:"#eff6ff",  icon:"💳" },
-  product:  { color:"#8b5cf6", bg:"#f5f3ff",  icon:"📦" },
-  stock:    { color:"#f59e0b", bg:"#fffbeb",  icon:"🗃️" },
-  auth:     { color:"#10b981", bg:"#f0fdf4",  icon:"🔐" },
-  customer: { color:"#ec4899", bg:"#fdf2f8",  icon:"👤" },
-};
+type Event = { id: string; type: "sale" | "purchase"; title: string; detail: string; amount: number; time: string };
 
 export default function ActivityPage() {
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "sale" | "purchase">("all");
 
-  const filtered = ACTIVITIES.filter(a =>
-    (typeFilter==="all"||a.type===typeFilter) &&
-    (search===""||a.action.includes(search)||a.detail.includes(search)||a.user.includes(search))
-  );
+  useEffect(() => {
+    (async () => {
+      const [{ data: sales }, { data: purchases }] = await Promise.all([
+        supabase.from("sales").select("id, total, sold_at, receipt_no, status, employees(name)").eq("store_id", STORE_ID).order("sold_at", { ascending: false }).limit(50),
+        supabase.from("purchases").select("id, total, purchased_at, supplier, employees(name)").eq("store_id", STORE_ID).order("purchased_at", { ascending: false }).limit(50),
+      ]);
+
+      const saleEvents: Event[] = (sales ?? []).map((s: { id: string; total: number; sold_at: string; receipt_no: string | null; status: string; employees: { name: string } | null }) => ({
+        id: s.id,
+        type: "sale" as const,
+        title: `ขายสินค้า #${s.receipt_no ?? s.id.slice(0, 8)}`,
+        detail: `โดย ${(s.employees as { name: string } | null)?.name ?? "-"} · ${s.status === "completed" ? "สำเร็จ" : "ยกเลิก"}`,
+        amount: s.total,
+        time: s.sold_at,
+      }));
+
+      const purchaseEvents: Event[] = (purchases ?? []).map((p: { id: string; total: number; purchased_at: string; supplier: string | null; employees: { name: string } | null }) => ({
+        id: p.id,
+        type: "purchase" as const,
+        title: `รับสินค้า${p.supplier ? ` จาก ${p.supplier}` : ""}`,
+        detail: `โดย ${(p.employees as { name: string } | null)?.name ?? "-"}`,
+        amount: p.total,
+        time: p.purchased_at,
+      }));
+
+      const all = [...saleEvents, ...purchaseEvents].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+      setEvents(all);
+      setLoading(false);
+    })();
+  }, []);
+
+  const filtered = events.filter(e => filter === "all" || e.type === filter);
 
   return (
-    <PageShell>
-      <div className="p-5 space-y-4">
-        <h1 className="text-xl font-bold text-slate-800">บันทึกกิจกรรม</h1>
-
-        <div className="bg-white rounded-xl p-3 shadow-sm flex gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-48">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหากิจกรรม..."
-              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"/>
-          </div>
-          <div className="flex gap-1 flex-wrap">
-            {[["all","ทั้งหมด"],["sale","ขาย"],["product","สินค้า"],["stock","สต็อก"],["auth","เข้าสู่ระบบ"],["customer","ลูกค้า"]].map(([v,l]) => (
-              <button key={v} onClick={()=>setTypeFilter(v)}
-                className={`px-3 py-2 rounded-lg text-[12px] font-medium transition-colors ${typeFilter===v?"bg-blue-600 text-white":"bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
-                {l}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          {filtered.map(a => {
-            const ts = TYPE_COLORS[a.type] ?? { color:"#94a3b8", bg:"#f8fafc", icon:"📋" };
-            return (
-              <div key={a.id} className="bg-white rounded-xl px-4 py-3 shadow-sm flex items-center gap-3">
-                <span className="text-xl flex-shrink-0">{ts.icon}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-800">{a.action}</span>
-                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ color:ts.color, background:ts.bg }}>
-                      {a.user}
-                    </span>
-                  </div>
-                  <p className="text-[12px] text-slate-400 truncate">{a.detail}</p>
-                </div>
-                <span className="text-[11px] text-slate-400 flex-shrink-0">{a.time}</span>
+    <>
+      <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
+      <div className="flex" style={{ marginTop: 50 }}>
+        {sidebarOpen && <Sidebar />}
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+          <div className="p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-slate-800">กิจกรรมล่าสุด</h1>
+              <div className="flex gap-1 bg-white rounded-xl p-1 shadow-sm">
+                {(["all","sale","purchase"] as const).map(v => (
+                  <button key={v} onClick={() => setFilter(v)}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${filter === v ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}>
+                    {v === "all" ? "ทั้งหมด" : v === "sale" ? "ขาย" : "รับสินค้า"}
+                  </button>
+                ))}
               </div>
-            );
-          })}
-        </div>
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center py-24"><div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" /></div>
+            ) : (
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                {filtered.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-2">
+                    <Activity size={48} strokeWidth={1} /><p>ยังไม่มีกิจกรรม</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-50">
+                    {filtered.map(e => (
+                      <div key={e.id} className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${e.type === "sale" ? "bg-blue-50" : "bg-emerald-50"}`}>
+                          {e.type === "sale" ? <ShoppingCart size={18} className="text-blue-500" /> : <Package size={18} className="text-emerald-500" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-slate-800 text-sm">{e.title}</p>
+                          <p className="text-[12px] text-slate-400 mt-0.5">{e.detail}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className={`font-bold text-sm ${e.type === "sale" ? "text-blue-600" : "text-emerald-600"}`}>
+                            {e.type === "sale" ? "+" : "-"}{thb(e.amount)} ฿
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">{fmtDate(e.time)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </main>
       </div>
-    </PageShell>
+    </>
   );
 }

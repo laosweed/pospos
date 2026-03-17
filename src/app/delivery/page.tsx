@@ -1,118 +1,88 @@
 "use client";
-
 import { useState } from "react";
-import PageShell from "@/components/PageShell";
-import { Truck, Plus, MapPin, Phone, Clock } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import { Truck, Plus, MapPin, X, Phone } from "lucide-react";
 import clsx from "clsx";
-
-type DeliveryStatus = "pending"|"preparing"|"delivering"|"delivered"|"cancelled";
-
-interface Delivery {
-  id:string; orderNo:string; customer:string; phone:string; address:string;
-  items:string[]; total:number; fee:number; status:DeliveryStatus;
-  platform:string; estimatedTime:string; driver?:string;
-}
-
-const DEMO: Delivery[] = [
-  { id:"d1", orderNo:"DEL-0045", customer:"สมชาย ใจดี",   phone:"081-234-5678", address:"123 ซ.สุขุมวิท 11 กรุงเทพ", items:["ครัวซองต์×2","กาแฟ×1"], total:155, fee:30, status:"delivering", platform:"Grab",     estimatedTime:"14:45", driver:"คมกฤช" },
-  { id:"d2", orderNo:"DEL-0044", customer:"นารี มีสุข",   phone:"082-345-6789", address:"456 ถ.สีลม แขวงสีลม",       items:["ชีสเค้ก×1","ชานมไข่มุก×2"],total:300,fee:40,status:"preparing", platform:"Foodpanda", estimatedTime:"15:00" },
-  { id:"d3", orderNo:"DEL-0043", customer:"วิชัย ทองดี",  phone:"083-456-7890", address:"789 ถ.อโศก แขวงวัฒนา",      items:["เค้กช็อกโกแลต×1"],          total:180, fee:50, status:"pending",   platform:"LINE MAN",  estimatedTime:"15:15" },
-  { id:"d4", orderNo:"DEL-0042", customer:"ประภา จันทร์", phone:"084-567-8901", address:"111 ซ.ลาดพร้าว 15",         items:["กาแฟ×3","มัฟฟิน×2"],         total:305, fee:35, status:"delivered", platform:"Grab",     estimatedTime:"13:30", driver:"ชาญชัย" },
+type Order = { id: number; customer: string; address: string; phone: string; items: string; amount: number; status: "pending"|"delivering"|"delivered"|"cancelled"; date: string };
+const INIT: Order[] = [
+  { id:1, customer:"สมชาย ใจดี", address:"123 ถ.สุขุมวิท 21 กรุงเทพฯ", phone:"081-234-5678", items:"ครัวซองต์ x2, เค้ก x1", amount:270, status:"delivering", date:"2026-03-15" },
+  { id:2, customer:"นารี มีสุข", address:"456 ถ.ลาดพร้าว กรุงเทพฯ", phone:"082-345-6789", items:"ชานมไข่มุก x3", amount:210, status:"pending", date:"2026-03-15" },
 ];
-
-const STATUS: Record<DeliveryStatus,{label:string;color:string;bg:string}> = {
-  pending:    { label:"รอดำเนินการ", color:"#94a3b8", bg:"#f8fafc" },
-  preparing:  { label:"กำลังเตรียม", color:"#f59e0b", bg:"#fffbeb" },
-  delivering: { label:"กำลังส่ง",    color:"#3b82f6", bg:"#eff6ff" },
-  delivered:  { label:"ส่งแล้ว",     color:"#10b981", bg:"#f0fdf4" },
-  cancelled:  { label:"ยกเลิก",      color:"#ef4444", bg:"#fef2f2" },
-};
-
-const PLATFORMS: Record<string,string> = { Grab:"#00B14F", Foodpanda:"#d70f64", "LINE MAN":"#06c755" };
-
-function thb(v: number) { return v.toLocaleString("th-TH"); }
-
+let nId=10;
+const SL: Record<string,string> = { pending:"รอรับ", delivering:"กำลังส่ง", delivered:"ส่งแล้ว", cancelled:"ยกเลิก" };
+const SC: Record<string,string> = { pending:"bg-amber-100 text-amber-600", delivering:"bg-blue-100 text-blue-600", delivered:"bg-emerald-100 text-emerald-600", cancelled:"bg-red-100 text-red-500" };
+function thb(v: number) { return v.toLocaleString("th-TH", { minimumFractionDigits:2 }); }
 export default function DeliveryPage() {
-  const [filter, setFilter] = useState<DeliveryStatus|"all">("all");
-
-  const filtered = DEMO.filter(d => filter==="all" || d.status===filter);
-  const active = DEMO.filter(d=>d.status==="delivering"||d.status==="preparing"||d.status==="pending").length;
-
-  return (
-    <PageShell>
-      <div className="p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-800">เดลิเวอรี่</h1>
-          <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700">
-            <Plus size={15}/> สร้างออเดอร์
-          </button>
-        </div>
-
-        <div className="grid grid-cols-4 gap-3">
-          {Object.entries(STATUS).map(([key,st]) => {
-            const count = DEMO.filter(d=>d.status===key).length;
-            return (
-              <div key={key} className="bg-white rounded-xl p-3 shadow-sm">
-                <p className="text-[11px] text-slate-400">{st.label}</p>
-                <p className="text-[20px] font-bold" style={{ color:st.color }}>{count}</p>
+  const [so,setSo]=useState(true);
+  const [orders,setOrders]=useState<Order[]>(INIT);
+  const [modal,setModal]=useState(false);
+  const [form,setForm]=useState({customer:"",address:"",phone:"",items:"",amount:""});
+  const save=()=>{ setOrders(p=>[...p,{id:nId++,...form,amount:parseFloat(form.amount)||0,status:"pending",date:new Date().toISOString().split("T")[0]}]); setModal(false); };
+  const next=(id:number)=>setOrders(p=>p.map(o=>o.id===id?{...o,status:o.status==="pending"?"delivering":o.status==="delivering"?"delivered":o.status}:o));
+  return (<>
+    <Navbar onToggleSidebar={()=>setSo(v=>!v)}/>
+    <div className="flex" style={{marginTop:50}}>
+      {so&&<Sidebar/>}
+      <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{marginLeft:so?230:0,background:"#edf1f5"}}>
+        <div className="p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-slate-800">จัดส่งสินค้า</h1>
+            <button onClick={()=>{setForm({customer:"",address:"",phone:"",items:"",amount:""});setModal(true);}} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700"><Plus size={16}/>สร้างออเดอร์</button>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            {["pending","delivering","delivered","cancelled"].map(s=>(
+              <div key={s} className="bg-white rounded-xl p-4 shadow-sm text-center">
+                <p className="text-[12px] text-slate-500">{SL[s]}</p>
+                <p className="text-xl font-bold text-slate-700">{orders.filter(o=>o.status===s).length}</p>
               </div>
-            );
-          })}
+            ))}
+          </div>
+          <div className="space-y-3">
+            {orders.map(o=>(
+              <div key={o.id} className="bg-white rounded-xl p-4 shadow-sm flex items-center gap-4">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0"><Truck size={18} className="text-blue-500"/></div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-semibold text-slate-800">{o.customer}</span>
+                    <span className={clsx("text-[11px] font-medium px-2 py-0.5 rounded-full",SC[o.status])}>{SL[o.status]}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[12px] text-slate-500">
+                    <span className="flex items-center gap-1"><MapPin size={11}/>{o.address}</span>
+                    <span className="flex items-center gap-1"><Phone size={11}/>{o.phone}</span>
+                  </div>
+                  <p className="text-[12px] text-slate-400 mt-1">{o.items}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="font-bold text-slate-700">{thb(o.amount)} ฿</p>
+                  {(o.status==="pending"||o.status==="delivering") && (
+                    <button onClick={()=>next(o.id)} className="mt-1 text-[11px] px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg font-medium transition-colors">
+                      {o.status==="pending"?"รับออเดอร์":"ส่งสำเร็จ"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-
-        <div className="flex gap-1 flex-wrap">
-          {[["all","ทั้งหมด"],...Object.entries(STATUS).map(([k,v])=>[k,v.label])].map(([k,l]) => (
-            <button key={k} onClick={()=>setFilter(k as DeliveryStatus|"all")}
-              className={clsx("px-3 py-1.5 rounded-xl text-[12px] font-medium transition-colors",
-                filter===k?"bg-blue-600 text-white":"bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
-              )}>{l}
-            </button>
-          ))}
-        </div>
-
+      </main>
+    </div>
+    {modal&&<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={()=>setModal(false)}>
+      <div className="bg-white rounded-2xl p-6 w-[440px] shadow-2xl" onClick={e=>e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4"><h2 className="font-bold text-lg">สร้างออเดอร์จัดส่ง</h2><button onClick={()=>setModal(false)} className="text-slate-400"><X size={20}/></button></div>
         <div className="space-y-3">
-          {filtered.map(d => {
-            const st = STATUS[d.status];
-            const platColor = PLATFORMS[d.platform] ?? "#64748b";
-            return (
-              <div key={d.id} className="bg-white rounded-2xl p-4 shadow-sm">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0"
-                      style={{ background:platColor }}>
-                      {d.platform.slice(0,2)}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-800">{d.orderNo}</p>
-                      <p className="text-[12px] text-slate-400">{d.platform}</p>
-                    </div>
-                  </div>
-                  <span className="text-[11px] font-medium px-2.5 py-1 rounded-full" style={{ color:st.color, background:st.bg }}>
-                    {st.label}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-[12px] text-slate-500 mb-3">
-                  <p className="flex items-center gap-1"><Phone size={11}/>{d.customer} · {d.phone}</p>
-                  <p className="flex items-center gap-1"><Clock size={11}/>ETA: {d.estimatedTime}</p>
-                  <p className="flex items-start gap-1 col-span-2"><MapPin size={11} className="mt-0.5 flex-shrink-0"/>{d.address}</p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-1 flex-wrap">
-                    {d.items.map((item,i)=>(
-                      <span key={i} className="text-[11px] bg-slate-100 px-2 py-0.5 rounded-full">{item}</span>
-                    ))}
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-bold text-slate-800">{thb(d.total)} ฿</p>
-                    <p className="text-[11px] text-slate-400">+{d.fee} ฿ ค่าส่ง</p>
-                  </div>
-                </div>
-                {d.driver && <p className="text-[11px] text-blue-500 mt-2 flex items-center gap-1"><Truck size={11}/>ไรเดอร์: {d.driver}</p>}
-              </div>
-            );
-          })}
+          {[["customer","ชื่อลูกค้า"],["phone","เบอร์โทร"],["address","ที่อยู่จัดส่ง"],["items","รายการสินค้า"]].map(([k,l])=>(
+            <div key={k}><label className="text-sm font-medium text-slate-700 block mb-1">{l}</label>
+            <input value={(form as Record<string,string>)[k]} onChange={e=>setForm(p=>({...p,[k]:e.target.value}))} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400"/></div>
+          ))}
+          <div><label className="text-sm font-medium text-slate-700 block mb-1">ยอดรวม (฿)</label>
+          <input type="number" value={form.amount} onChange={e=>setForm(p=>({...p,amount:e.target.value}))} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400"/></div>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <button onClick={()=>setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">ยกเลิก</button>
+          <button onClick={save} disabled={!form.customer} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">สร้าง</button>
         </div>
       </div>
-    </PageShell>
-  );
+    </div>}
+  </>);
 }

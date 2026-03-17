@@ -1,87 +1,111 @@
 "use client";
 
-import { useState } from "react";
-import PageShell from "@/components/PageShell";
-import { GripVertical, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/Sidebar";
+import { GripVertical, Save, RefreshCw } from "lucide-react";
+import { supabase, STORE_ID } from "@/lib/supabase/browser";
 
-interface MenuItem { id:string; name:string; emoji:string; category:string; order:number; active:boolean }
-
-const INITIAL: MenuItem[] = [
-  { id:"p1", name:"ครัวซองต์เนย",    emoji:"🥐", category:"เบเกอรี่",    order:1,  active:true },
-  { id:"p2", name:"ขนมปังโฮลวีท",    emoji:"🍞", category:"เบเกอรี่",    order:2,  active:true },
-  { id:"p3", name:"มัฟฟินบลูเบอร์รี่",emoji:"🧁", category:"เบเกอรี่",    order:3,  active:true },
-  { id:"p4", name:"กาแฟลาเต้",       emoji:"☕", category:"เครื่องดื่ม",  order:4,  active:true },
-  { id:"p5", name:"ชานมไข่มุก",      emoji:"🧋", category:"เครื่องดื่ม",  order:5,  active:true },
-  { id:"p6", name:"เค้กช็อกโกแลต",   emoji:"🎂", category:"เค้ก",         order:6,  active:true },
-  { id:"p7", name:"ชีสเค้ก",         emoji:"🍰", category:"เค้ก",         order:7,  active:true },
-  { id:"p8", name:"โดนัทกลาเซ่",     emoji:"🍩", category:"โดนัท",        order:8,  active:true },
-];
+type Item = { id: string; name: string; emoji: string; sort_order: number; category: string };
 
 export default function SortPage() {
-  const [items, setItems] = useState(INITIAL);
-  const [dragging, setDragging] = useState<string|null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [dragging, setDragging] = useState<number | null>(null);
 
-  const moveUp   = (id: string) => setItems(prev => {
-    const i = prev.findIndex(p=>p.id===id);
-    if (i<=0) return prev;
-    const arr = [...prev];
-    [arr[i-1],arr[i]] = [arr[i],arr[i-1]];
-    return arr.map((p,idx)=>({...p,order:idx+1}));
-  });
-  const moveDown = (id: string) => setItems(prev => {
-    const i = prev.findIndex(p=>p.id===id);
-    if (i>=prev.length-1) return prev;
-    const arr = [...prev];
-    [arr[i],arr[i+1]] = [arr[i+1],arr[i]];
-    return arr.map((p,idx)=>({...p,order:idx+1}));
-  });
-  const toggleActive = (id: string) => setItems(prev => prev.map(p=>p.id===id?{...p,active:!p.active}:p));
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("products")
+        .select("id, name, emoji, sort_order:id, categories(name)")
+        .eq("store_id", STORE_ID)
+        .eq("active", true);
+      if (data) {
+        setItems((data as { id: string; name: string; emoji: string; categories: { name: string } | null }[]).map((p, i) => ({
+          id: p.id, name: p.name, emoji: p.emoji, sort_order: i, category: p.categories?.name ?? "ไม่มีหมวด"
+        })));
+      }
+      setLoading(false);
+    })();
+  }, []);
 
-  const save = () => { setSaved(true); setTimeout(()=>setSaved(false),2000); };
+  const onDragStart = (i: number) => setDragging(i);
+  const onDragOver = (e: React.DragEvent, i: number) => {
+    e.preventDefault();
+    if (dragging === null || dragging === i) return;
+    setItems(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(dragging, 1);
+      next.splice(i, 0, moved);
+      return next.map((x, idx) => ({ ...x, sort_order: idx }));
+    });
+    setDragging(i);
+  };
+
+  const saveOrder = async () => {
+    setSaving(true);
+    await Promise.all(items.map((item, i) =>
+      supabase.from("products").update({ sku: item.id }).eq("id", item.id)
+    ));
+    setSaving(false); setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const cats = [...new Set(items.map(i => i.category))];
 
   return (
-    <PageShell>
-      <div className="p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-800">เรียงลำดับสินค้า / เมนู</h1>
-          <button onClick={save} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700">
-            <Save size={15}/>{saved?"✓ บันทึกแล้ว":"บันทึกลำดับ"}
-          </button>
-        </div>
-
-        <p className="text-sm text-slate-500">ลำดับสินค้าจะแสดงในหน้าขาย กดปุ่มลูกศรเพื่อเปลี่ยนลำดับ</p>
-
-        <div className="space-y-2">
-          {items.map((item,i) => (
-            <div key={item.id} className="bg-white rounded-xl px-4 py-3 shadow-sm flex items-center gap-3">
-              <GripVertical size={16} className="text-slate-300 flex-shrink-0 cursor-grab"/>
-              <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-[12px] font-bold flex items-center justify-center flex-shrink-0">
-                {item.order}
-              </span>
-              <span className="text-xl">{item.emoji}</span>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-800">{item.name}</p>
-                <p className="text-[11px] text-slate-400">{item.category}</p>
-              </div>
-              <div className="flex gap-1">
-                <button onClick={()=>moveUp(item.id)} disabled={i===0}
-                  className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-[14px]">
-                  ↑
-                </button>
-                <button onClick={()=>moveDown(item.id)} disabled={i===items.length-1}
-                  className="w-7 h-7 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-[14px]">
-                  ↓
-                </button>
-              </div>
-              <button onClick={()=>toggleActive(item.id)}
-                className={`w-10 h-6 rounded-full relative transition-colors ${item.active?"bg-blue-500":"bg-slate-300"}`}>
-                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${item.active?"left-4":"left-0.5"}`}/>
+    <>
+      <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
+      <div className="flex" style={{ marginTop: 50 }}>
+        {sidebarOpen && <Sidebar />}
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+          <div className="p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-slate-800">จัดเรียงสินค้า</h1>
+              <button onClick={saveOrder} disabled={saving || loading}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+                {saved ? "บันทึกแล้ว ✓" : "บันทึกลำดับ"}
               </button>
             </div>
-          ))}
-        </div>
+            <p className="text-sm text-slate-500">ลากเพื่อจัดเรียงลำดับการแสดงสินค้าในหน้าขาย</p>
+
+            {loading ? (
+              <div className="flex justify-center py-16"><div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" /></div>
+            ) : (
+              <div className="space-y-4">
+                {cats.map(cat => (
+                  <div key={cat} className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                      <h3 className="font-semibold text-slate-700 text-sm">{cat}</h3>
+                    </div>
+                    <div>
+                      {items.filter(i => i.category === cat).map((item, idx) => {
+                        const globalIdx = items.findIndex(x => x.id === item.id);
+                        return (
+                          <div key={item.id} draggable
+                            onDragStart={() => onDragStart(globalIdx)}
+                            onDragOver={e => onDragOver(e, globalIdx)}
+                            onDragEnd={() => setDragging(null)}
+                            className={`flex items-center gap-3 px-4 py-3 border-b border-slate-50 cursor-grab active:cursor-grabbing transition-colors ${dragging === globalIdx ? "bg-blue-50" : "hover:bg-slate-50"}`}>
+                            <GripVertical size={16} className="text-slate-300 flex-shrink-0" />
+                            <span className="text-xl">{item.emoji}</span>
+                            <span className="font-medium text-slate-700 flex-1">{item.name}</span>
+                            <span className="text-[12px] text-slate-400">#{idx + 1}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </main>
       </div>
-    </PageShell>
+    </>
   );
 }
