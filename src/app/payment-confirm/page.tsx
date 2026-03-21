@@ -48,12 +48,12 @@ export default function PaymentConfirmPage() {
   );
 
   const confirm = async (id: string) => {
-    await supabase.from("sales").update({ status: "completed" }).eq("id", id);
+    await (supabase.from("sales") as any).update({ status: "completed" }).eq("id", id);
     setSales(p => p.map(s => s.id === id ? { ...s, status: "completed" } : s));
     setSelected(p => p?.id === id ? { ...p, status: "completed" } : p);
   };
   const cancel = async (id: string) => {
-    await supabase.from("sales").update({ status: "cancelled" }).eq("id", id);
+    await (supabase.from("sales") as any).update({ status: "cancelled" }).eq("id", id);
     setSales(p => p.map(s => s.id === id ? { ...s, status: "cancelled" } : s));
     setSelected(p => p?.id === id ? { ...p, status: "cancelled" } : p);
   };

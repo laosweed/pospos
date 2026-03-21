@@ -60,9 +60,9 @@ export default function EmployeesPage() {
       active: form.active,
     };
     if (isNew) {
-      await supabase.from("employees").insert({ store_id: STORE_ID, ...payload });
+      await (supabase.from("employees") as any).insert({ store_id: STORE_ID, ...payload });
     } else if (selected?.id) {
-      await supabase.from("employees").update(payload).eq("id", selected.id);
+      await (supabase.from("employees") as any).update(payload).eq("id", selected.id);
     }
     await load();
     setSelected(null);

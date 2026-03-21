@@ -48,7 +48,7 @@ export default function SortPage() {
   const saveOrder = async () => {
     setSaving(true);
     await Promise.all(items.map((item, i) =>
-      supabase.from("products").update({ sku: item.id }).eq("id", item.id)
+      (supabase.from("products") as any).update({ sku: item.id }).eq("id", item.id)
     ));
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2000);

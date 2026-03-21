@@ -30,9 +30,10 @@ export default function SettingsPage() {
     const load = async () => {
       const { data } = await supabase.from("stores").select("*").eq("id", STORE_ID).single();
       if (data) {
-        setStoreName(data.name);
-        setPosName(data.pos_name);
-        setVatEnabled(data.vat_enabled);
+        const d = data as any;
+        setStoreName(d.name);
+        setPosName(d.pos_name);
+        setVatEnabled(d.vat_enabled);
       }
       setLoading(false);
     };
@@ -41,8 +42,8 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    const { error } = await supabase
-      .from("stores")
+    const { error } = await (supabase
+      .from("stores") as any)
       .update({ name: storeName, pos_name: posName, vat_enabled: vatEnabled })
       .eq("id", STORE_ID);
     if (error) {

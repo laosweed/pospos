@@ -44,9 +44,9 @@ export default function SkuPage() {
   const handleSave = async () => {
     setSaving(true);
     if (isNew) {
-      await supabase.from("products").insert({ store_id: STORE_ID, ...form, sku: form.sku || null });
+      await (supabase.from("products") as any).insert({ store_id: STORE_ID, ...form, sku: form.sku || null });
     } else if (editing?.id) {
-      await supabase.from("products").update({ ...form, sku: form.sku || null }).eq("id", editing.id);
+      await (supabase.from("products") as any).update({ ...form, sku: form.sku || null }).eq("id", editing.id);
     }
     await load();
     setEditing(null);

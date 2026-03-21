@@ -67,9 +67,9 @@ export default function CustomersPage() {
       email: form.email || null,
     };
     if (isNew) {
-      await supabase.from("customers").insert({ store_id: STORE_ID, points: 0, ...payload });
+      await (supabase.from("customers") as any).insert({ store_id: STORE_ID, points: 0, ...payload });
     } else if (selected?.id) {
-      await supabase.from("customers").update(payload).eq("id", selected.id);
+      await (supabase.from("customers") as any).update(payload).eq("id", selected.id);
     }
     await load();
     setSelected(null);

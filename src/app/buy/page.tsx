@@ -33,11 +33,11 @@ export default function BuyPage() {
     ]);
     if (prods) setProducts(prods);
     if (purch) {
-      setRecent(purch.map(p => ({
+      setRecent((purch as unknown as Record<string, unknown>[]).map(p => ({
         ...p,
         purchase_items: undefined,
         item_count: (p.purchase_items as unknown as { id: string }[])?.length ?? 0,
-      })) as RecentPurchase[]);
+      })) as unknown as RecentPurchase[]);
     }
     setLoading(false);
   };
@@ -71,8 +71,8 @@ export default function BuyPage() {
     setSaving(true);
     try {
       const now = new Date().toISOString();
-      const { data: purchaseData, error: purchErr } = await supabase
-        .from("purchases")
+      const { data: purchaseData, error: purchErr } = await (supabase
+        .from("purchases") as any)
         .insert({
           store_id: STORE_ID,
           supplier: supplier || null,
@@ -86,19 +86,19 @@ export default function BuyPage() {
       if (purchErr || !purchaseData) throw purchErr;
 
       const items: Omit<PurchaseItem, "id">[] = cart.map(i => ({
-        purchase_id: purchaseData.id,
+        purchase_id: (purchaseData as any).id,
         product_id: i.product.id,
         name: i.product.name,
         cost: i.unitCost,
         quantity: i.qty,
         subtotal: i.unitCost * i.qty,
       }));
-      await supabase.from("purchase_items").insert(items);
+      await (supabase.from("purchase_items") as any).insert(items);
 
       // Update stock for each product
       for (const item of cart) {
-        await supabase
-          .from("products")
+        await (supabase
+          .from("products") as any)
           .update({ stock: item.product.stock + item.qty })
           .eq("id", item.product.id);
       }

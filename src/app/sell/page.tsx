@@ -168,12 +168,12 @@ export default function SellPage() {
 
   const handleConfirmPayment = async (method:string) => {
     const no = `R${Date.now().toString().slice(-6)}`;
-    const {data:sale} = await supabase.from("sales").insert({
+    const {data:sale} = await (supabase.from("sales") as any).insert({
       store_id:STORE_ID, receipt_no:no, total, discount, vat,
       payment_method:method, status:"completed", sold_at:new Date().toISOString(),
     }).select().single();
     if (sale) {
-      await supabase.from("sale_items").insert(
+      await (supabase.from("sale_items") as any).insert(
         cart.map(item=>({
           sale_id:sale.id, product_id:item.product.id, name:item.product.name,
           price:item.product.price, cost:item.product.cost, quantity:item.qty,
@@ -181,7 +181,7 @@ export default function SellPage() {
         }))
       );
       for (const item of cart) {
-        await supabase.from("products").update({stock:Math.max(0,item.product.stock-item.qty)}).eq("id",item.product.id);
+        await (supabase.from("products") as any).update({stock:Math.max(0,item.product.stock-item.qty)}).eq("id",item.product.id);
       }
       await loadProducts();
     }

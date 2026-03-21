@@ -91,7 +91,7 @@ export default function ToppingsPage() {
               <div className="flex gap-4">
                 {[["required","จำเป็น"],["multi","เลือกได้หลาย"]].map(([k,l]) => (
                   <label key={k} className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="checkbox" checked={(form as Record<string, boolean>)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.checked }))} className="accent-blue-600" />
+                    <input type="checkbox" checked={(form as unknown as Record<string, boolean>)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.checked }))} className="accent-blue-600" />
                     {l}
                   </label>
                 ))}

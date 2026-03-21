@@ -16,7 +16,7 @@ const DEMO_STORE: Store = {
 const DEMO_EMPLOYEE: Employee = {
   id: "demo-emp", store_id: "demo",
   name: "ชนิ่น เกษมทรัพย์", email: "demo01@pospos.co",
-  role: "manager", avatar_url: null,
+  role: "manager", phone: null, active: true, avatar_url: null,
   created_at: new Date().toISOString(),
 };
 
@@ -95,11 +95,11 @@ async function fetchData() {
     todayMap[key] = 0;
     yestMap[key]  = 0;
   }
-  (todayRows ?? []).forEach(s => {
+  ((todayRows ?? []) as unknown as { sold_at: string; total: number }[]).forEach(s => {
     const key = `${String(new Date(s.sold_at).getHours()).padStart(2,"0")}.00`;
     todayMap[key] = (todayMap[key] ?? 0) + (s.total ?? 0);
   });
-  (yestRows ?? []).forEach(s => {
+  ((yestRows ?? []) as unknown as { sold_at: string; total: number }[]).forEach(s => {
     const key = `${String(new Date(s.sold_at).getHours()).padStart(2,"0")}.00`;
     yestMap[key] = (yestMap[key] ?? 0) + (s.total ?? 0);
   });

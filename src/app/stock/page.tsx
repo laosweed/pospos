@@ -56,7 +56,7 @@ export default function StockPage() {
     const val = parseInt(editStock);
     if (isNaN(val) || val < 0) { setEditId(null); return; }
     setSaving(true);
-    await supabase.from("products").update({ stock: val }).eq("id", id);
+    await (supabase.from("products") as any).update({ stock: val }).eq("id", id);
     setProducts(prev => prev.map(p => p.id === id ? { ...p, stock: val } : p));
     setEditId(null);
     setSaving(false);

@@ -82,7 +82,7 @@ export default function BranchesPage() {
               {[["name","ชื่อสาขา"],["manager","ผู้จัดการ"],["phone","เบอร์โทร"],["address","ที่อยู่"]].map(([k,l]) => (
                 <div key={k}>
                   <label className="text-sm font-medium text-slate-700 block mb-1">{l}</label>
-                  <input value={(form as Record<string,string>)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))}
+                  <input value={(form as unknown as Record<string,string>)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))}
                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
                 </div>
               ))}

@@ -22,7 +22,11 @@ export default function PageShell({ children, className }: PageShellProps) {
         {sidebarOpen && <Sidebar />}
         <main
           className={className ?? "flex-1 min-h-[calc(100vh-50px)] overflow-auto"}
-          style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}
+          style={{
+            marginLeft: sidebarOpen ? 230 : 0,
+            background: "#edf1f5",
+            transition: "margin-left 0.3s",
+          }}
         >
           {children}
         </main>
