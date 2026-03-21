@@ -146,13 +146,13 @@ export default function ShiftPage() {
 
 function SummaryCard({ icon: Icon, color, label, value }: { icon: typeof Clock; color: string; label: string; value: string }) {
   return (
-    <div className="bg-white rounded shadow-sm flex items-center overflow-hidden">
-      <div className="w-[60px] h-[60px] flex items-center justify-center flex-shrink-0" style={{ background: color }}>
-        <Icon size={24} className="text-white" />
+    <div className="bg-white flex items-stretch overflow-hidden" style={{ minHeight: 90, borderRadius: 2, boxShadow: "0 1px 1px rgba(0,0,0,0.1)", marginBottom: 15 }}>
+      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 90, background: color, borderRadius: "2px 0 0 2px" }}>
+        <Icon size={45} className="text-white" strokeWidth={1.5} />
       </div>
-      <div className="px-3 py-2 min-w-0">
-        <p className="text-[10px] text-slate-400 uppercase font-semibold">{label}</p>
-        <p className="text-[14px] font-bold text-slate-800 truncate">{value}</p>
+      <div style={{ padding: "5px 10px" }} className="min-w-0 flex flex-col justify-center">
+        <p style={{ textTransform: "uppercase", fontSize: 14 }} className="text-slate-500 truncate">{label}</p>
+        <p style={{ fontWeight: "bold", fontSize: 18 }} className="text-slate-800 truncate">{value}</p>
       </div>
     </div>
   );

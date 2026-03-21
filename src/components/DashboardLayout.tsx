@@ -37,7 +37,7 @@ export default function DashboardLayout({
         <main
           className="flex-1 min-h-[calc(100vh-50px)]"
           style={{
-            marginLeft: sidebarOpen ? 230 : 0,
+            marginLeft: sidebarOpen ? 200 : 0,
             background: "#edf1f5",
             transition: "margin-left 0.3s",
           }}

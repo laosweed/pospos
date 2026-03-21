@@ -104,17 +104,34 @@ const NAV_SECTIONS: NavSection[] = [
   },
 ];
 
-// ─── AdminLTE skin-blue color tokens ─────────────────────────
-const COLORS = {
-  sidebarBg: "#222d32",         // .main-sidebar background
-  sidebarHeaderBg: "#1a2226",   // section header background
-  sidebarHoverBg: "#1e282c",    // hover/active background
-  sidebarText: "#b8c7ce",       // default text color
-  sidebarTextMuted: "#4b646f",  // section header text
-  activeBorderLeft: "#3c8dbc",  // active item accent
-  activeBg: "#1e282c",          // active item bg
-  activeText: "#ffffff",        // active item text
-  userPanelBg: "#1a2226",       // user panel background
+/*
+ * Exact color tokens extracted from go.pospos.co CSS:
+ *
+ * .main-sidebar, .left-side       → background: none (transparent over wrapper)
+ * .sidebar-menu li.menu-items     → background: #131820; color: #728b97
+ * .sidebar-menu>li:hover>a,
+ * .sidebar-menu>li.active>a,
+ * .sidebar-menu>li.menu-open>a    → color: #94a3b8; background: #172944
+ * li.active>a                     → background: #337ab7; font-weight: bolder
+ * .sidebar-menu .treeview-menu>li>a → color: #8aa4af
+ * .sidebar-menu .treeview-menu>li:hover>a → color: #fff
+ * .sidebar-toggle:hover           → background: #128fe9
+ * .main-sidebar                   → width: 200px
+ * .content-wrapper                → margin-left: 200px; background: #edf1f5
+ */
+const S = {
+  width: 200,                       // .main-sidebar { width: 200px }
+  menuItemsBg: "#131820",           // .sidebar-menu li.menu-items { background }
+  menuItemsText: "#728b97",         // .sidebar-menu li.menu-items { color }
+  sectionOpenBg: "#172944",         // .sidebar-menu>li.menu-open>a { background }
+  sectionOpenText: "#94a3b8",       // .sidebar-menu>li.menu-open>a { color }
+  subItemText: "#8aa4af",           // .treeview-menu>li>a { color }
+  subItemHoverText: "#fff",         // .treeview-menu>li:hover>a { color }
+  activeItemBg: "#337ab7",          // li.active>a { background }
+  activeItemText: "#fff",           // li.active>a { color }
+  userPanelBg: "#131820",           // same as menu-items
+  searchBg: "#374850",              // .sidebar-form input { background-color }
+  searchBorder: "#374850",          // .sidebar-form { border }
 };
 
 // ─── Sidebar ─────────────────────────────────────────────────
@@ -148,134 +165,137 @@ export default function Sidebar({
   return (
     <aside
       className="sidebar-scroll fixed top-[50px] left-0 z-40 flex flex-col overflow-y-auto"
-      style={{ background: COLORS.sidebarBg, width: 230, height: "calc(100vh - 50px)" }}
+      style={{ background: S.menuItemsBg, width: S.width, height: "calc(100vh - 50px)" }}
     >
-      {/* ── User panel (AdminLTE style) ── */}
-      <div className="px-3 py-3 flex-shrink-0" style={{ background: COLORS.userPanelBg }}>
-        <div className="flex items-center gap-2.5 mb-2">
+      {/* ── User panel ── */}
+      <div className="px-2.5 py-2.5 flex-shrink-0" style={{ background: S.userPanelBg }}>
+        <div className="flex items-center gap-2 mb-1.5">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-            style={{ background: COLORS.activeBorderLeft }}
+            className="w-[45px] h-[45px] rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+            style={{ background: "#0d6eb3" }}
           >
             {storeName.charAt(0)}
           </div>
-          <div className="min-w-0">
-            <p className="text-[13px] font-semibold truncate" style={{ color: "#fff" }}>{storeName}</p>
-            <p className="text-[11px] truncate" style={{ color: COLORS.sidebarTextMuted }}>{storeEmail}</p>
+          <div className="min-w-0" style={{ lineHeight: 1 }}>
+            <p className="text-[13px] font-semibold truncate mb-1" style={{ color: "#fff" }}>{storeName}</p>
+            <p className="text-[11px] truncate" style={{ color: S.menuItemsText }}>{storeEmail}</p>
           </div>
         </div>
         <span
           className="inline-block text-white text-[10px] font-bold tracking-widest px-2.5 py-0.5 rounded-sm"
-          style={{ background: "#dd4b39" }}
+          style={{ background: "linear-gradient(90deg,#ff003d 0%,#ffc4bd 50%,#ff738b 100%)" }}
         >
           DEMO
         </span>
-        <span className="text-[10px] ml-2" style={{ color: COLORS.sidebarTextMuted }}>
+        <span className="text-[10px] ml-1.5" style={{ color: S.menuItemsText }}>
           ระบบจะรีเซ็ตข้อมูลทุกวัน
         </span>
       </div>
 
-      {/* ── Search menu (AdminLTE style) ── */}
-      <div className="px-3 py-2 flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        <div className="relative">
+      {/* ── Search (sidebar-form) ── */}
+      <div className="px-2.5 py-2 flex-shrink-0">
+        <div
+          className="flex rounded-[3px]"
+          style={{ border: `1px solid ${S.searchBorder}`, margin: 0 }}
+        >
           <input
             type="text"
             placeholder="ค้นหาเมนู..."
-            className="w-full text-[12px] pl-3 pr-8 py-1.5 rounded-sm border-0 focus:outline-none"
-            style={{
-              background: COLORS.sidebarHeaderBg,
-              color: COLORS.sidebarText,
-            }}
+            className="flex-1 text-[12px] px-2.5 py-1 border-0 focus:outline-none rounded-l-[2px]"
+            style={{ background: S.searchBg, color: "#666", height: 35, boxShadow: "none" }}
           />
-          <LayoutGrid size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2" style={{ color: COLORS.sidebarTextMuted }} />
+          <button
+            className="px-2.5 flex items-center justify-center rounded-r-[2px]"
+            style={{ background: S.searchBg, color: "#999", height: 35, border: "1px solid transparent", boxShadow: "none" }}
+          >
+            <LayoutGrid size={13} />
+          </button>
         </div>
       </div>
 
       {/* ── Nav sections ── */}
       <nav className="flex-1 overflow-y-auto sidebar-scroll">
-        {NAV_SECTIONS.map(section => (
-          <div key={section.id}>
-            {/* Section header (AdminLTE: .sidebar-menu > li.header) */}
-            <button
-              onClick={() => toggle(section.id)}
-              className="w-full flex items-center gap-2 px-4 py-2 text-left transition-colors"
-              style={{
-                background: COLORS.sidebarHeaderBg,
-                borderTop: "1px solid rgba(0,0,0,0.25)",
-                borderBottom: "1px solid rgba(255,255,255,0.03)",
-              }}
-            >
-              <span className="flex-shrink-0" style={{ color: COLORS.sidebarTextMuted }}>{section.icon}</span>
-              <span
-                className="flex-1 text-[11px] font-bold uppercase tracking-wider truncate"
-                style={{ color: COLORS.sidebarTextMuted }}
-              >
-                {section.label}
-              </span>
-              <ChevronLeft
-                size={10}
+        {NAV_SECTIONS.map(section => {
+          const isOpen = open[section.id];
+          return (
+            <div key={section.id} style={{ background: S.menuItemsBg }}>
+              {/* Section header — .sidebar-menu > li.header */}
+              <button
+                onClick={() => toggle(section.id)}
+                className="w-full flex items-center gap-2 text-left transition-colors"
                 style={{
-                  color: COLORS.sidebarTextMuted,
-                  flexShrink: 0,
-                  transform: open[section.id] ? "rotate(-90deg)" : "rotate(0deg)",
-                  transition: "transform 0.2s",
+                  padding: "10px 15px",               // .sidebar-menu li.header { padding }
+                  fontSize: 12,
+                  background: isOpen ? S.sectionOpenBg : S.menuItemsBg,
+                  color: isOpen ? S.sectionOpenText : S.menuItemsText,
+                  cursor: "pointer",
                 }}
-              />
-            </button>
+              >
+                <span className="flex-shrink-0">{section.icon}</span>
+                <span className="flex-1 font-semibold truncate">
+                  {section.label}
+                </span>
+                <ChevronLeft
+                  size={11}
+                  style={{
+                    flexShrink: 0,
+                    transform: isOpen ? "rotate(-90deg)" : "rotate(0deg)",
+                    transition: "transform 0.5s ease",  // AdminLTE transition
+                  }}
+                />
+              </button>
 
-            {/* Items */}
-            {open[section.id] && (
-              <ul>
-                {section.items.map(item => {
-                  const active = isActive(item.href);
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        className="flex items-center gap-2.5 pl-5 pr-3 py-[7px] text-[13px] transition-colors group"
-                        style={{
-                          borderLeft: active ? `3px solid ${COLORS.activeBorderLeft}` : "3px solid transparent",
-                          background: active ? COLORS.activeBg : undefined,
-                          color: active ? COLORS.activeText : COLORS.sidebarText,
-                        }}
-                        onMouseEnter={e => {
-                          if (!active) {
-                            (e.currentTarget as HTMLElement).style.background = COLORS.sidebarHoverBg;
-                            (e.currentTarget as HTMLElement).style.color = COLORS.activeText;
-                          }
-                        }}
-                        onMouseLeave={e => {
-                          if (!active) {
-                            (e.currentTarget as HTMLElement).style.background = "";
-                            (e.currentTarget as HTMLElement).style.color = COLORS.sidebarText;
-                          }
-                        }}
-                      >
-                        <span className="flex-shrink-0 w-[14px]">{item.icon}</span>
-                        <span className="flex-1 truncate">{item.label}</span>
-                        <Star
-                          size={10}
-                          className="flex-shrink-0 opacity-0 group-hover:opacity-30 transition-opacity"
-                          style={{ color: COLORS.sidebarText }}
-                        />
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        ))}
+              {/* Sub-items — .treeview-menu */}
+              {isOpen && (
+                <ul style={{ paddingLeft: 20 }}>
+                  {section.items.map(item => {
+                    const active = isActive(item.href);
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className="flex items-center gap-2 text-[14px] transition-colors group"
+                          style={{
+                            // .treeview-menu>li>a { padding: 5px 5px 5px 15px }
+                            padding: "5px 5px 5px 15px",
+                            display: "block",
+                            background: active ? S.activeItemBg : undefined,
+                            color: active ? S.activeItemText : S.subItemText,
+                            fontWeight: active ? "bolder" : "normal",
+                          }}
+                          onMouseEnter={e => {
+                            if (!active) {
+                              (e.currentTarget as HTMLElement).style.color = S.subItemHoverText;
+                            }
+                          }}
+                          onMouseLeave={e => {
+                            if (!active) {
+                              (e.currentTarget as HTMLElement).style.color = S.subItemText;
+                            }
+                          }}
+                        >
+                          <span className="flex-shrink-0" style={{ width: 20 }}>{item.icon}</span>
+                          <span className="flex-1 truncate">{item.label}</span>
+                          <Star
+                            size={10}
+                            className="flex-shrink-0 opacity-0 group-hover:opacity-30 transition-opacity"
+                            style={{ color: S.subItemText }}
+                          />
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          );
+        })}
       </nav>
 
       {/* ── Version footer ── */}
       <div
         className="px-4 py-2 text-[10px] flex-shrink-0"
-        style={{
-          color: COLORS.sidebarTextMuted,
-          background: COLORS.sidebarHeaderBg,
-          borderTop: "1px solid rgba(0,0,0,0.25)",
-        }}
+        style={{ color: S.menuItemsText, background: S.menuItemsBg }}
       >
         V 9.58.2
       </div>

@@ -389,15 +389,20 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
+{/* .info-box { min-height:90px; border-radius:2px; box-shadow:0 1px 1px rgba(0,0,0,0.1) }
+   .info-box-icon { width:90px; height:90px; font-size:45px; line-height:90px; border-radius:2px 0 0 2px }
+   .info-box-content { padding:5px 10px; margin-left:90px }
+   .info-box-text { text-transform:uppercase; font-size:14px }
+   .info-box-number { font-weight:bold; font-size:18px } */}
 function InfoBox({ icon: Icon, color, label, value }: { icon: typeof TrendingUp; color: string; label: string; value: string }) {
   return (
-    <div className="bg-white rounded shadow-sm flex items-center overflow-hidden">
-      <div className="w-[70px] h-[70px] flex items-center justify-center flex-shrink-0" style={{ background: color }}>
-        <Icon size={28} className="text-white" />
+    <div className="bg-white flex items-stretch overflow-hidden" style={{ minHeight: 90, borderRadius: 2, boxShadow: "0 1px 1px rgba(0,0,0,0.1)", marginBottom: 15 }}>
+      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 90, background: color, borderRadius: "2px 0 0 2px" }}>
+        <Icon size={45} className="text-white" strokeWidth={1.5} />
       </div>
-      <div className="px-3 py-2 min-w-0">
-        <p className="text-[11px] text-slate-400 uppercase font-semibold">{label}</p>
-        <p className="text-[16px] font-bold text-slate-800 truncate">{value}</p>
+      <div style={{ padding: "5px 10px", marginLeft: 0 }} className="min-w-0 flex flex-col justify-center">
+        <p style={{ textTransform: "uppercase", fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} className="text-slate-500">{label}</p>
+        <p style={{ fontWeight: "bold", fontSize: 18 }} className="text-slate-800 truncate">{value}</p>
       </div>
     </div>
   );
