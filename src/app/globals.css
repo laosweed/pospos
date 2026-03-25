@@ -2,147 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Google Fonts (matches go.pospos.co) ── */
+/* ── Google Fonts — exact match to go.pospos.co ── */
 @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@100;300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100;300;400;500;600;700;800&display=swap');
 
+/* ══════════════════════════════════════════════════════════════
+   Base — matches go.pospos.co body defaults
+   ══════════════════════════════════════════════════════════════ */
 @layer base {
-  * {
+  *, *::before, *::after {
     box-sizing: border-box;
   }
   html, body {
-    /* Matches go.pospos.co: Noto Sans Thai > Sarabun > Source Sans Pro */
     font-family: 'Noto Sans Thai', 'Sarabun', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
     font-size: 14px;
     line-height: 1.42857143;
     color: #333;
+    background-color: #edf1f5;
   }
 }
 
 /* ══════════════════════════════════════════════════════════════
-   POSPOS Custom CSS — extracted from go.pospos.co/styles.css
+   Overrides — applied ON TOP of the cloned AdminLTE + pospos CSS
+   (these live in public/css/ and are loaded via layout.tsx <link>)
    ══════════════════════════════════════════════════════════════ */
 
-/* ── Sidebar width & layout (custom override over AdminLTE) ── */
-.main-sidebar { width: 200px; }
-.skin-blue .wrapper,
-.skin-blue .main-sidebar,
-.skin-blue .left-side { background: none; }
-.content-wrapper,
-.main-footer { margin-left: 200px; }
-.main-header .logo { width: 200px; }
-.main-header .navbar { margin-left: 200px; }
-
-/* ── Navbar colors ── */
-.skin-blue .main-header .navbar { background: #0d6eb3; }
-.skin-blue .main-header .logo { background: #1ca1e4; }
-.skin-blue .main-header .logo:hover { background: #1085d9; }
-.skin-blue .main-header .navbar .sidebar-toggle:hover { color: #f6f6f6; background: #128fe9; }
-.skin-blue .main-header .navbar .nav > li > a:hover,
-.skin-blue .main-header .navbar .nav > li > a:active,
-.skin-blue .main-header .navbar .nav > li > a:focus,
-.skin-blue .main-header .navbar .nav .open > a,
-.skin-blue .main-header .navbar .nav .open > a:hover,
-.skin-blue .main-header .navbar .nav .open > a:focus,
-.skin-blue .main-header .navbar .nav > .active > a { background: #128fe9; }
-
-/* ── Sidebar menu items ── */
-.sidebar-menu li.menu-items { background: #131820; color: #728b97; scroll-margin: 37px; }
-.sidebar-menu li.header { padding: 10px 15px; }
-.sidebar-menu > li > a { padding: 20px 5px 20px 15px; }
-.sidebar-menu > li.active > a { border-left: 0 !important; }
-.skin-blue .sidebar-menu > li:hover > a,
-.skin-blue .sidebar-menu > li.active > a,
-.skin-blue .sidebar-menu > li.menu-open > a { color: #94a3b8; background: #172944; cursor: pointer; }
-
-/* ── Active item ── */
-li.active > a { background: #337ab7; font-weight: bolder; }
-.treeview-menu > li:hover > a > svg path,
-li.active > a > svg path:hover,
-li.active,
-.treeview-menu > li:hover > a > .fa,
-.treeview-menu > li:hover > a { fill: #fff !important; color: #fff !important; }
-ul > li.treeview > ul > li > a:hover,
-ul > li.treeview.active > ul > li > a:hover { color: #fff !important; }
-
-/* ── Treeview sub-menu ── */
-.treeview-menu { padding-left: 20px; }
-
-/* ── Content area ── */
-.content-wrapper { background: #edf1f5; }
-.content-wrapper { height: 98% !important; overflow-y: auto; padding-bottom: 30px; }
-
-/* ── Button styles (pp-btn-*) — exact from go.pospos.co ── */
-.pp-btn-primary { color: #fff; background: #0d6eb3 !important; border-radius: 10px; }
-.pp-btn-primary:hover, .pp-btn-primary:active { color: #fff; background: #1a7abe !important; }
-.pp-btn-primary:disabled { background-color: #0d6eb385 !important; cursor: not-allowed; }
-.pp-btn-primary:focus { color: #fff; }
-
-.pp-btn-danger { color: #fff; background: #f2536e !important; border-radius: 10px; }
-.pp-btn-danger:hover, .pp-btn-danger.active { color: #fff; background: #e61b2f !important; }
-
-.pp-btn-success { color: #fff; background-color: #0ea5e9 !important; font-weight: 500; border: 0; border-radius: 10px; }
-.pp-btn-success:hover, .pp-btn-success:active, .pp-btn-success:focus { color: #fff; background-color: #0284c7 !important; }
-
-.pp-btn-warning { color: #fff; background: #efa43b; border-radius: 10px; }
-.pp-btn-warning:hover, .pp-btn-warning:active { background: #e47719; }
-
-.pp-btn-default { color: #575d6e; background: #efefef; font-weight: 500; transition-duration: .4s; border: 1px solid #ddd; border-radius: 8px; }
-.pp-btn-default:hover, .pp-btn-default:active { color: #454545; background: #d5d7e0; }
-
-.pp-btn-cancel { color: #454545; background: #fafafa; border-radius: 10px; }
-.pp-btn-cancel:hover, .pp-btn-cancel:active { color: #454545; background: #e6e9ed; }
-
-.pp-btn-menu { background-color: #575d6e; color: #fff; border-radius: 10px; }
-.pp-btn-menu:hover, .pp-btn-menu:focus, .pp-btn-menu:active { background-color: #818592; color: #e0e0e0; }
-
-.pp-btn-segment { color: #00aaec; box-shadow: none !important; border: 1px solid #00aaec; background-color: #fff; }
-.pp-btn-segment.active { color: #fff; background-color: #00aaec; }
-
-.pp-btn-ghost-blue { color: #1eaaf0; background: transparent; cursor: pointer !important; }
-.pp-btn-ghost-blue:hover, .pp-btn-ghost-blue:focus, .pp-btn-ghost-blue:active { color: #0471e2; background: transparent; }
-
-.pp-btn-primary-ghost { color: #007bff; border: 1px solid #007bff; background: transparent !important; border-radius: 8px; }
-.pp-btn-primary-ghost:hover { color: #0471e2; border: 1px solid #0471e2; background-color: #f2f8ff !important; }
-
-.pp-btn-danger-ghost { color: #f2536e; border: 1px solid #f2536e; background: transparent !important; }
-.pp-btn-danger-ghost:hover { color: #e61b2f; border: 1px solid #e61b2f; }
-
-/* ── Nav tabs custom ── */
-.nav-tabs-custom > .nav-tabs > li.active { border-top-color: #1eaaf0; }
-
-/* ── Info box (AdminLTE) ── */
-.info-box { display: block; min-height: 90px; background: #fff; width: 100%; box-shadow: 0 1px 1px rgba(0,0,0,.1); border-radius: 2px; margin-bottom: 15px; }
-.info-box-icon { border-top-left-radius: 2px; border-bottom-left-radius: 2px; display: block; float: left; height: 90px; width: 90px; text-align: center; font-size: 45px; line-height: 90px; background: rgba(0,0,0,.2); }
-.info-box-content { padding: 5px 10px; margin-left: 90px; }
-.info-box-number { display: block; font-weight: bold; font-size: 18px; }
-.info-box-text { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; }
-
-/* ── tw-box components ── */
-.tw-box-content .tw-box-header {
-  position: relative; display: flex; flex-direction: row; flex-wrap: wrap;
-  align-items: center; justify-content: space-between;
-  border-top-left-radius: 1rem; border-top-right-radius: 1rem;
-  background-color: rgb(244 244 245); padding: 2rem 1.75rem; color: rgb(63 63 70);
-}
-.tw-box-content .tw-box-body { padding: 1.5rem 1.75rem; }
-.tw-box-content .tw-box-title { margin: 0; font-size: 1.875rem; line-height: 1; }
-
-/* ── Print ── */
-@media print {
-  * { font-family: Sarabun, sans-serif !important; box-sizing: border-box; }
-  .content-wrapper { height: auto !important; padding: 0 !important; }
-  .wrapper, .main-header { margin: 0; }
-  body { font-family: 'Noto Sans Thai', sans-serif !important; }
-}
-
-/* ── Custom scrollbar for sidebar ── */
+/* Sidebar scrollbar */
 .sidebar-scroll::-webkit-scrollbar { width: 4px; }
 .sidebar-scroll::-webkit-scrollbar-track { background: #0f1624; }
 .sidebar-scroll::-webkit-scrollbar-thumb { background: #2d5086; border-radius: 2px; }
 
-/* ── Smooth sidebar item transition ── */
+/* Smooth transitions */
 .sidebar-item-link { transition: background 0.15s, color 0.15s; }
 
-/* ── Chart gradient ── */
+/* Chart gradient fill */
 .chart-gradient-line { fill: url(#chartGradient); }
+
+/* Next.js app router: remove default margin/padding injected by @tailwind base */
+body { margin: 0; padding: 0; }
