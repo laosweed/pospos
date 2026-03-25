@@ -14,29 +14,81 @@
     box-sizing: border-box;
   }
   html, body {
-    font-family: 'Noto Sans Thai', 'Sarabun', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Noto Sans Thai', 'Sarabun', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif !important;
     font-size: 14px;
     line-height: 1.42857143;
     color: #333;
     background-color: #edf1f5;
   }
+  /* Override Tailwind's default blue to match POSPOS #0d6eb3 */
+  :root {
+    --pospos-blue: #0d6eb3;
+    --pospos-blue-hover: #1a7abe;
+    --pospos-blue-light: #b3ddf5;
+    --pospos-danger: #f2536e;
+    --pospos-danger-hover: #e61b2f;
+    --pospos-success: #0ea5e9;
+    --pospos-warning: #efa43b;
+    --pospos-sidebar-bg: #131820;
+    --pospos-sidebar-text: #728b97;
+    --pospos-content-bg: #edf1f5;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Overrides — applied ON TOP of the cloned AdminLTE + pospos CSS
-   (these live in public/css/ and are loaded via layout.tsx <link>)
+   Overrides — applied ON TOP of cloned AdminLTE + pospos CSS
    ══════════════════════════════════════════════════════════════ */
 
-/* Sidebar scrollbar */
+/* ── Remap Tailwind blue-600/700 → POSPOS #0d6eb3 ── */
+.bg-blue-600 { background-color: var(--pospos-blue) !important; }
+.bg-blue-700 { background-color: var(--pospos-blue-hover) !important; }
+.bg-blue-500 { background-color: var(--pospos-blue) !important; }
+.hover\:bg-blue-700:hover { background-color: var(--pospos-blue-hover) !important; }
+.hover\:bg-blue-600:hover { background-color: var(--pospos-blue) !important; }
+.text-blue-600 { color: var(--pospos-blue) !important; }
+.text-blue-500 { color: var(--pospos-blue) !important; }
+.border-blue-600 { border-color: var(--pospos-blue) !important; }
+.border-blue-400 { border-color: #4ba3d9 !important; }
+.focus\:border-blue-400:focus { border-color: #4ba3d9 !important; }
+.ring-2.ring-blue-400 { --tw-ring-color: #4ba3d9 !important; }
+
+/* ── Remap red to POSPOS danger #f2536e ── */
+.bg-red-500 { background-color: var(--pospos-danger) !important; }
+.bg-red-600 { background-color: var(--pospos-danger-hover) !important; }
+.text-red-500 { color: var(--pospos-danger) !important; }
+.text-red-400 { color: var(--pospos-danger) !important; }
+.hover\:bg-red-50:hover { background-color: #fff0f3 !important; }
+.hover\:text-red-500:hover { color: var(--pospos-danger) !important; }
+
+/* ── Buttons global: match POSPOS border-radius 10px ── */
+button, .btn, [role="button"] {
+  font-family: 'Noto Sans Thai', 'Sarabun', sans-serif !important;
+}
+
+/* ── Rounded-xl on buttons → border-radius 10px (POSPOS) ── */
+button.rounded-xl, a.rounded-xl { border-radius: 10px !important; }
+button.rounded-2xl, a.rounded-2xl { border-radius: 16px !important; }
+
+/* ── Inputs: use POSPOS font ── */
+input, select, textarea {
+  font-family: 'Noto Sans Thai', 'Sarabun', sans-serif !important;
+}
+
+/* ── bg-blue-50 / blue-100 light tints → POSPOS tint ── */
+.bg-blue-50 { background-color: #f0f8ff !important; }
+.bg-blue-100 { background-color: #ddeeff !important; }
+.text-blue-600.font-bold { color: var(--pospos-blue) !important; }
+
+/* ── Sidebar scrollbar ── */
 .sidebar-scroll::-webkit-scrollbar { width: 4px; }
 .sidebar-scroll::-webkit-scrollbar-track { background: #0f1624; }
 .sidebar-scroll::-webkit-scrollbar-thumb { background: #2d5086; border-radius: 2px; }
 
-/* Smooth transitions */
+/* ── Smooth transitions ── */
 .sidebar-item-link { transition: background 0.15s, color 0.15s; }
 
-/* Chart gradient fill */
+/* ── Chart gradient ── */
 .chart-gradient-line { fill: url(#chartGradient); }
 
-/* Next.js app router: remove default margin/padding injected by @tailwind base */
+/* ── Reset browser default margin ── */
 body { margin: 0; padding: 0; }
