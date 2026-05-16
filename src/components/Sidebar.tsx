@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Gauge, Star, LayoutGrid, ChevronDown, ChevronLeft,
+  Gauge, Star, LayoutGrid, ChevronLeft,
   Store, CreditCard, Coins, Users, ShoppingCart,
   ArrowUpDown, Settings, PieChart, BarChart2,
   FolderOpen, Package, Percent, UserCircle,
@@ -16,90 +16,91 @@ import {
   DollarSign, Award, Package2, AlertCircle,
   HelpingHand, Cpu, Clock,
 } from "lucide-react";
-import clsx from "clsx";
+import { useLanguage } from "@/context/LanguageContext";
+import type { Dict } from "@/i18n/types";
 
 // ─── Nav structure (matches real POSPOS go.pospos.co) ─────────
-interface NavItem { label: string; icon: React.ReactNode; href: string }
-interface NavSection { id: string; label: string; icon: React.ReactNode; items: NavItem[] }
+interface NavItem { labelKey: keyof Dict; icon: React.ReactNode; href: string }
+interface NavSection { id: string; labelKey: keyof Dict; icon: React.ReactNode; items: NavItem[] }
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    id: "store", label: "หน้าร้าน", icon: <Store size={14} />,
+    id: "store", labelKey: "sec_store", icon: <Store size={14} />,
     items: [
-      { label: "หน้าขาย",        icon: <CreditCard size={14} />,  href: "/sell" },
-      { label: "รับซื้อ",         icon: <Coins size={14} />,       href: "/buy" },
-      { label: "ค้างจ่าย (หนี้)", icon: <Users size={14} />,       href: "/credit" },
-      { label: "อีคอมเมิร์ซ",    icon: <ShoppingCart size={14} />, href: "/ecom" },
-      { label: "เรียงลำดับ",     icon: <ArrowUpDown size={14} />,  href: "/sort" },
-      { label: "ตั้งค่า",         icon: <Settings size={14} />,     href: "/settings" },
+      { labelKey: "item_sell",     icon: <CreditCard size={14} />,  href: "/sell" },
+      { labelKey: "item_buy",      icon: <Coins size={14} />,       href: "/buy" },
+      { labelKey: "item_credit",   icon: <Users size={14} />,       href: "/credit" },
+      { labelKey: "item_ecom",     icon: <ShoppingCart size={14} />, href: "/ecom" },
+      { labelKey: "item_sort",     icon: <ArrowUpDown size={14} />,  href: "/sort" },
+      { labelKey: "item_settings", icon: <Settings size={14} />,     href: "/settings" },
     ],
   },
   {
-    id: "reports", label: "เอกสาร/รายงาน", icon: <PieChart size={14} />,
+    id: "reports", labelKey: "sec_reports", icon: <PieChart size={14} />,
     items: [
-      { label: "แดชบอร์ด",      icon: <Gauge size={14} />,       href: "/dashboard" },
-      { label: "รายงาน",         icon: <BarChart2 size={14} />,    href: "/reports" },
-      { label: "เอกสาร",         icon: <FolderOpen size={14} />,   href: "/documents" },
-      { label: "ประวัติขาย",     icon: <Receipt size={14} />,      href: "/sale-history" },
-      { label: "ประวัติสินค้า",  icon: <History size={14} />,      href: "/stock-history" },
-      { label: "ค่าใช้จ่าย",     icon: <DollarSign size={14} />,   href: "/expenses" },
-      { label: "เดลิเวอรี่",     icon: <Truck size={14} />,        href: "/delivery" },
-      { label: "กะการขาย",       icon: <Clock size={14} />,        href: "/shift" },
+      { labelKey: "item_dashboard",    icon: <Gauge size={14} />,       href: "/dashboard" },
+      { labelKey: "item_reports",      icon: <BarChart2 size={14} />,    href: "/reports" },
+      { labelKey: "item_documents",    icon: <FolderOpen size={14} />,   href: "/documents" },
+      { labelKey: "item_sale_history", icon: <Receipt size={14} />,      href: "/sale-history" },
+      { labelKey: "item_stock_history",icon: <History size={14} />,      href: "/stock-history" },
+      { labelKey: "item_expenses",     icon: <DollarSign size={14} />,   href: "/expenses" },
+      { labelKey: "item_delivery",     icon: <Truck size={14} />,        href: "/delivery" },
+      { labelKey: "item_shift",        icon: <Clock size={14} />,        href: "/shift" },
     ],
   },
   {
-    id: "products", label: "สินค้า", icon: <Package size={14} />,
+    id: "products", labelKey: "sec_products", icon: <Package size={14} />,
     items: [
-      { label: "สต็อก",           icon: <Package2 size={14} />,    href: "/stock" },
-      { label: "บาร์โค้ด",        icon: <Barcode size={14} />,     href: "/barcode" },
-      { label: "ท็อปปิ้ง/สูตร",   icon: <Layers size={14} />,      href: "/toppings" },
-      { label: "นำเข้า/รับซื้อ",  icon: <Download size={14} />,    href: "/import-buy" },
-      { label: "เบิก/คืนสินค้า",  icon: <RotateCcw size={14} />,   href: "/requisition" },
-      { label: "เจ้าหนี้",         icon: <Building2 size={14} />,   href: "/creditor" },
-      { label: "POSPOS Extra",     icon: <Package size={14} />,     href: "/extra" },
-      { label: "โอนสินค้า",        icon: <ShoppingCart size={14} />, href: "/transfer" },
-      { label: "ระดับราคา",        icon: <BarChart2 size={14} />,   href: "/price-levels" },
-      { label: "ราคาขายส่ง",       icon: <Tag size={14} />,         href: "/wholesale" },
-      { label: "สินค้า (SKU)",      icon: <Barcode size={14} />,    href: "/sku" },
-      { label: "วันหมดอายุ",       icon: <AlertCircle size={14} />, href: "/expiration" },
+      { labelKey: "item_stock",        icon: <Package2 size={14} />,    href: "/stock" },
+      { labelKey: "item_barcode",      icon: <Barcode size={14} />,     href: "/barcode" },
+      { labelKey: "item_toppings",     icon: <Layers size={14} />,      href: "/toppings" },
+      { labelKey: "item_import_buy",   icon: <Download size={14} />,    href: "/import-buy" },
+      { labelKey: "item_requisition",  icon: <RotateCcw size={14} />,   href: "/requisition" },
+      { labelKey: "item_creditor",     icon: <Building2 size={14} />,   href: "/creditor" },
+      { labelKey: "item_extra",        icon: <Package size={14} />,     href: "/extra" },
+      { labelKey: "item_transfer",     icon: <ShoppingCart size={14} />, href: "/transfer" },
+      { labelKey: "item_price_levels", icon: <BarChart2 size={14} />,   href: "/price-levels" },
+      { labelKey: "item_wholesale",    icon: <Tag size={14} />,         href: "/wholesale" },
+      { labelKey: "item_sku",          icon: <Barcode size={14} />,    href: "/sku" },
+      { labelKey: "item_expiration",   icon: <AlertCircle size={14} />, href: "/expiration" },
     ],
   },
   {
-    id: "promo", label: "โปรโมชั่น", icon: <Percent size={14} />,
+    id: "promo", labelKey: "sec_promo", icon: <Percent size={14} />,
     items: [
-      { label: "โปรโมชั่น", icon: <Gift size={14} />,   href: "/promotions" },
-      { label: "ส่วนลด",    icon: <Ticket size={14} />, href: "/discounts" },
+      { labelKey: "item_promotions", icon: <Gift size={14} />,   href: "/promotions" },
+      { labelKey: "item_discounts",  icon: <Ticket size={14} />, href: "/discounts" },
     ],
   },
   {
-    id: "crm", label: "CRM", icon: <UserCircle size={14} />,
+    id: "crm", labelKey: "sec_crm", icon: <UserCircle size={14} />,
     items: [
-      { label: "ลูกค้า",             icon: <Users size={14} />,      href: "/customers" },
-      { label: "แลกแต้มสะสม",        icon: <Award size={14} />,      href: "/points-exchange" },
-      { label: "ตั้งค่าแต้มสะสม",    icon: <Settings size={14} />,   href: "/points-settings" },
+      { labelKey: "item_customers",       icon: <Users size={14} />,    href: "/customers" },
+      { labelKey: "item_points_exchange", icon: <Award size={14} />,    href: "/points-exchange" },
+      { labelKey: "item_points_settings", icon: <Settings size={14} />, href: "/points-settings" },
     ],
   },
   {
-    id: "admin", label: "บริหาร", icon: <Briefcase size={14} />,
+    id: "admin", labelKey: "sec_admin", icon: <Briefcase size={14} />,
     items: [
-      { label: "สาขา",              icon: <Store size={14} />,         href: "/branches" },
-      { label: "พนักงาน",            icon: <UserCog size={14} />,      href: "/employees" },
-      { label: "ผู้ผลิต",            icon: <Factory size={14} />,      href: "/vendors" },
-      { label: "เครื่อง POS",        icon: <Monitor size={14} />,      href: "/pos-machines" },
-      { label: "กิจกรรม",            icon: <CalendarRange size={14} />, href: "/activity" },
-      { label: "มอนิเตอร์โต๊ะ",      icon: <Monitor size={14} />,     href: "/table-monitor" },
-      { label: "อุปกรณ์ที่เข้าสู่ระบบ", icon: <Smartphone size={14} />, href: "/devices" },
+      { labelKey: "item_branches",      icon: <Store size={14} />,         href: "/branches" },
+      { labelKey: "item_employees",     icon: <UserCog size={14} />,       href: "/employees" },
+      { labelKey: "item_vendors",       icon: <Factory size={14} />,       href: "/vendors" },
+      { labelKey: "item_pos_machines",  icon: <Monitor size={14} />,       href: "/pos-machines" },
+      { labelKey: "item_activity",      icon: <CalendarRange size={14} />, href: "/activity" },
+      { labelKey: "item_table_monitor", icon: <Monitor size={14} />,       href: "/table-monitor" },
+      { labelKey: "item_devices",       icon: <Smartphone size={14} />,    href: "/devices" },
     ],
   },
   {
-    id: "help", label: "ช่วยเหลือ", icon: <HelpCircle size={14} />,
+    id: "help", labelKey: "sec_help", icon: <HelpCircle size={14} />,
     items: [
-      { label: "คู่มือ",          icon: <BookOpen size={14} />,      href: "/manual" },
-      { label: "แจ้งปัญหา",       icon: <MessageCircle size={14} />, href: "/report-problem" },
-      { label: "แจ้งชำระเงิน",   icon: <CardIcon size={14} />,      href: "/payment-confirm" },
-      { label: "แพคเกจ",         icon: <Package size={14} />,        href: "/package" },
-      { label: "อุปกรณ์",         icon: <Cpu size={14} />,           href: "/hardware" },
-      { label: "พาร์ทเนอร์",     icon: <HelpingHand size={14} />,   href: "/partners" },
+      { labelKey: "item_manual",          icon: <BookOpen size={14} />,      href: "/manual" },
+      { labelKey: "item_report_problem",  icon: <MessageCircle size={14} />, href: "/report-problem" },
+      { labelKey: "item_payment_confirm", icon: <CardIcon size={14} />,      href: "/payment-confirm" },
+      { labelKey: "item_package",         icon: <Package size={14} />,       href: "/package" },
+      { labelKey: "item_hardware",        icon: <Cpu size={14} />,           href: "/hardware" },
+      { labelKey: "item_partners",        icon: <HelpingHand size={14} />,   href: "/partners" },
     ],
   },
 ];
@@ -145,6 +146,7 @@ export default function Sidebar({
   storeEmail = "demo01@pospos.co",
 }: SidebarProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const [open, setOpen] = useState<Record<string, boolean>>({
     store: true,
     reports: true,
@@ -185,10 +187,10 @@ export default function Sidebar({
           className="inline-block text-white text-[10px] font-bold tracking-widest px-2.5 py-0.5 rounded-sm"
           style={{ background: "linear-gradient(90deg,#ff003d 0%,#ffc4bd 50%,#ff738b 100%)" }}
         >
-          DEMO
+          {t("sidebar_demo_label")}
         </span>
         <span className="text-[10px] ml-1.5" style={{ color: S.menuItemsText }}>
-          ระบบจะรีเซ็ตข้อมูลทุกวัน
+          {t("sidebar_demo_reset")}
         </span>
       </div>
 
@@ -200,7 +202,7 @@ export default function Sidebar({
         >
           <input
             type="text"
-            placeholder="ค้นหาเมนู..."
+            placeholder={t("sidebar_search_placeholder")}
             className="flex-1 text-[12px] px-2.5 py-1 border-0 focus:outline-none rounded-l-[2px]"
             style={{ background: S.searchBg, color: "#666", height: 35, boxShadow: "none" }}
           />
@@ -219,46 +221,45 @@ export default function Sidebar({
           const isOpen = open[section.id];
           return (
             <div key={section.id} style={{ background: S.menuItemsBg }}>
-              {/* Section header — .sidebar-menu > li.header */}
+              {/* Section header — .sidebar-menu > li (with treeview) */}
               <button
                 onClick={() => toggle(section.id)}
-                className="w-full flex items-center gap-2 text-left transition-colors"
+                className="w-full flex items-center gap-3 text-left transition-colors"
                 style={{
-                  padding: "10px 15px",               // .sidebar-menu li.header { padding }
-                  fontSize: 12,
+                  padding: "12px 10px 12px 15px",
+                  fontSize: 14,
                   background: isOpen ? S.sectionOpenBg : S.menuItemsBg,
                   color: isOpen ? S.sectionOpenText : S.menuItemsText,
                   cursor: "pointer",
                 }}
               >
-                <span className="flex-shrink-0">{section.icon}</span>
+                <span className="flex-shrink-0 w-[20px] flex items-center justify-center">{section.icon}</span>
                 <span className="flex-1 font-semibold truncate">
-                  {section.label}
+                  {t(section.labelKey)}
                 </span>
                 <ChevronLeft
-                  size={11}
+                  size={12}
                   style={{
                     flexShrink: 0,
                     transform: isOpen ? "rotate(-90deg)" : "rotate(0deg)",
-                    transition: "transform 0.5s ease",  // AdminLTE transition
+                    transition: "transform 0.5s ease",
                   }}
                 />
               </button>
 
               {/* Sub-items — .treeview-menu */}
               {isOpen && (
-                <ul style={{ paddingLeft: 20 }}>
+                <ul>
                   {section.items.map(item => {
                     const active = isActive(item.href);
                     return (
                       <li key={item.href}>
                         <Link
                           href={item.href}
-                          className="flex items-center gap-2 text-[14px] transition-colors group"
+                          className="flex items-center gap-3 text-[13px] transition-colors group"
                           style={{
-                            // .treeview-menu>li>a { padding: 5px 5px 5px 15px }
-                            padding: "5px 5px 5px 15px",
-                            display: "block",
+                            padding: "8px 10px 8px 20px",
+                            display: "flex",
                             background: active ? S.activeItemBg : undefined,
                             color: active ? S.activeItemText : S.subItemText,
                             fontWeight: active ? "bolder" : "normal",
@@ -274,12 +275,12 @@ export default function Sidebar({
                             }
                           }}
                         >
-                          <span className="flex-shrink-0" style={{ width: 20 }}>{item.icon}</span>
-                          <span className="flex-1 truncate">{item.label}</span>
+                          <span className="flex-shrink-0 w-[20px] flex items-center justify-center opacity-80">{item.icon}</span>
+                          <span className="flex-1 truncate">{t(item.labelKey)}</span>
                           <Star
-                            size={10}
-                            className="flex-shrink-0 opacity-0 group-hover:opacity-30 transition-opacity"
-                            style={{ color: S.subItemText }}
+                            size={12}
+                            className="flex-shrink-0 opacity-0 group-hover:opacity-40 transition-opacity"
+                            style={{ color: active ? "#fff" : S.subItemText }}
                           />
                         </Link>
                       </li>

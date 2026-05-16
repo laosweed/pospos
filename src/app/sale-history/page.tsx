@@ -7,6 +7,7 @@ import { Search, Eye, X, Receipt } from "lucide-react";
 import clsx from "clsx";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
 import type { Sale, SaleItem } from "@/lib/supabase/types";
+import { useTranslation } from "@/context/LanguageContext";
 
 type SaleWithDetails = Sale & {
   employees: { name: string } | null;
@@ -20,16 +21,25 @@ function fmtDate(s: string) {
   return d.toLocaleDateString("th-TH") + " " + d.toLocaleTimeString("th-TH", { hour:"2-digit", minute:"2-digit" });
 }
 
-const STATUS_LABEL: Record<string, string> = { completed:"สำเร็จ", cancelled:"ยกเลิก", pending:"รอดำเนินการ" };
-const PAYMENT_LABEL: Record<string, string> = { cash:"เงินสด", card:"บัตรเครดิต", qr:"QR Code" };
-
 export default function SaleHistoryPage() {
+  const t = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sales, setSales] = useState<SaleWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all"|"completed"|"cancelled">("all");
   const [selected, setSelected] = useState<SaleWithDetails | null>(null);
+
+  const PAYMENT_LABEL: Record<string, string> = {
+    cash: t("payment_cash"),
+    card: t("payment_card"),
+    qr:   t("payment_qr"),
+  };
+  const STATUS_LABEL: Record<string, string> = {
+    completed: t("status_completed"),
+    cancelled:  t("status_cancelled"),
+    pending:    t("status_pending"),
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -63,51 +73,43 @@ export default function SaleHistoryPage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
 
-            <h1 className="text-xl font-bold text-slate-800">ประวัติการขาย</h1>
+            <h1 className="text-xl font-bold text-slate-800">{t("sale_history_title")}</h1>
 
-            {/* Summary */}
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500 mb-1">ยอดรวมทั้งหมด</p>
+                <p className="text-[12px] text-slate-500 mb-1">{t("sale_total_revenue")}</p>
                 <p className="text-[20px] font-bold text-blue-600">{thb(totalRevenue)} ฿</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500 mb-1">จำนวนบิล</p>
-                <p className="text-[20px] font-bold text-emerald-600">{totalBills} บิล</p>
+                <p className="text-[12px] text-slate-500 mb-1">{t("sale_total_bills")}</p>
+                <p className="text-[20px] font-bold text-emerald-600">{totalBills} {t("sale_bills")}</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500 mb-1">บิลยกเลิก</p>
-                <p className="text-[20px] font-bold text-red-500">{cancelled} บิล</p>
+                <p className="text-[12px] text-slate-500 mb-1">{t("sale_cancelled_bills")}</p>
+                <p className="text-[20px] font-bold text-red-500">{cancelled} {t("sale_bills")}</p>
               </div>
             </div>
 
-            {/* Filters */}
             <div className="bg-white rounded-xl p-3 shadow-sm flex gap-3 flex-wrap">
               <div className="relative flex-1 min-w-48">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="ค้นหาเลขบิล ลูกค้า พนักงาน..."
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"
-                />
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("sale_search_placeholder")}
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" />
               </div>
               <div className="flex gap-1">
-                {([["all","ทั้งหมด"],["completed","สำเร็จ"],["cancelled","ยกเลิก"]] as const).map(([v,l]) => (
+                {([["all", t("common_all")],["completed", t("status_completed")],["cancelled", t("status_cancelled")]] as const).map(([v,l]) => (
                   <button key={v} onClick={() => setStatusFilter(v)}
                     className={clsx("px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                      statusFilter === v ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    )}>
+                      statusFilter === v ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}>
                     {l}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Table */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               {loading ? (
                 <div className="flex justify-center py-16"><div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full"/></div>
@@ -116,13 +118,13 @@ export default function SaleHistoryPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-100">
-                        <th className="text-left px-4 py-3 text-slate-500 font-medium">เลขบิล</th>
-                        <th className="text-left px-4 py-3 text-slate-500 font-medium">วันที่/เวลา</th>
-                        <th className="text-left px-4 py-3 text-slate-500 font-medium">พนักงาน</th>
-                        <th className="text-left px-4 py-3 text-slate-500 font-medium">ลูกค้า</th>
-                        <th className="text-left px-4 py-3 text-slate-500 font-medium">ชำระ</th>
-                        <th className="text-right px-4 py-3 text-slate-500 font-medium">ยอดรวม</th>
-                        <th className="text-center px-4 py-3 text-slate-500 font-medium">สถานะ</th>
+                        <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("col_receipt_no")}</th>
+                        <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("sale_datetime")}</th>
+                        <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("col_employee")}</th>
+                        <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("col_customer")}</th>
+                        <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("col_payment")}</th>
+                        <th className="text-right px-4 py-3 text-slate-500 font-medium">{t("col_total")}</th>
+                        <th className="text-center px-4 py-3 text-slate-500 font-medium">{t("col_status")}</th>
                         <th className="px-4 py-3" />
                       </tr>
                     </thead>
@@ -149,8 +151,7 @@ export default function SaleHistoryPage() {
                             <span className={clsx("text-[11px] font-medium px-2.5 py-1 rounded-full",
                               sale.status === "completed" ? "bg-emerald-100 text-emerald-600" :
                               sale.status === "cancelled"  ? "bg-red-100 text-red-600" :
-                              "bg-amber-100 text-amber-600"
-                            )}>
+                              "bg-amber-100 text-amber-600")}>
                               {STATUS_LABEL[sale.status]}
                             </span>
                           </td>
@@ -166,7 +167,7 @@ export default function SaleHistoryPage() {
                   {filtered.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
                       <Receipt size={40} strokeWidth={1} />
-                      <p>ไม่พบรายการ</p>
+                      <p>{t("common_no_data")}</p>
                     </div>
                   )}
                 </>
@@ -176,31 +177,27 @@ export default function SaleHistoryPage() {
         </main>
       </div>
 
-      {/* Detail drawer */}
       {selected && (
         <div className="fixed inset-0 bg-black/40 flex justify-end z-50" onClick={() => setSelected(null)}>
           <div className="bg-white w-[400px] h-full overflow-auto shadow-2xl p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="font-bold text-lg text-slate-800">ใบเสร็จ #{selected.receipt_no ?? "-"}</h2>
+              <h2 className="font-bold text-lg text-slate-800">{t("sale_receipt_title")} #{selected.receipt_no ?? "-"}</h2>
               <button onClick={() => setSelected(null)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
             </div>
-
             <div className="space-y-3 text-sm mb-5">
-              <div className="flex justify-between"><span className="text-slate-500">วันที่/เวลา</span><span>{fmtDate(selected.sold_at)}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">พนักงาน</span><span>{selected.employees?.name ?? "-"}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">ลูกค้า</span><span>{selected.customers?.name ?? "-"}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">ชำระด้วย</span><span>{PAYMENT_LABEL[selected.payment_method] ?? selected.payment_method}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">สถานะ</span>
+              <div className="flex justify-between"><span className="text-slate-500">{t("sale_datetime")}</span><span>{fmtDate(selected.sold_at)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">{t("col_employee")}</span><span>{selected.employees?.name ?? "-"}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">{t("col_customer")}</span><span>{selected.customers?.name ?? "-"}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">{t("sale_paid_with")}</span><span>{PAYMENT_LABEL[selected.payment_method] ?? selected.payment_method}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">{t("col_status")}</span>
                 <span className={clsx("text-[11px] font-medium px-2.5 py-1 rounded-full",
-                  selected.status === "completed" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
-                )}>
+                  selected.status === "completed" ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600")}>
                   {STATUS_LABEL[selected.status]}
                 </span>
               </div>
             </div>
-
             <div className="border-t pt-4 mb-4">
-              <h3 className="font-semibold text-slate-700 mb-3">รายการสินค้า</h3>
+              <h3 className="font-semibold text-slate-700 mb-3">{t("sale_items_list")}</h3>
               <div className="space-y-2">
                 {selected.sale_items.map((item, i) => (
                   <div key={i} className="flex justify-between text-sm">
@@ -210,26 +207,25 @@ export default function SaleHistoryPage() {
                 ))}
               </div>
             </div>
-
             <div className="border-t pt-4 space-y-2 text-sm">
               <div className="flex justify-between text-slate-500">
-                <span>ยอดรวม</span>
+                <span>{t("sell_subtotal")}</span>
                 <span>{thb(selected.sale_items.reduce((s,i)=>s+i.subtotal,0))} ฿</span>
               </div>
               {selected.discount > 0 && (
                 <div className="flex justify-between text-red-500">
-                  <span>ส่วนลด</span>
+                  <span>{t("sale_discount")}</span>
                   <span>-{thb(selected.discount)} ฿</span>
                 </div>
               )}
               {selected.vat > 0 && (
                 <div className="flex justify-between text-slate-500">
-                  <span>VAT</span>
+                  <span>{t("sale_vat")}</span>
                   <span>{thb(selected.vat)} ฿</span>
                 </div>
               )}
               <div className="flex justify-between font-bold text-base">
-                <span>ยอดสุทธิ</span>
+                <span>{t("sale_net")}</span>
                 <span className="text-blue-600">{thb(selected.total)} ฿</span>
               </div>
             </div>

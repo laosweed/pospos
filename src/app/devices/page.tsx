@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Monitor, Printer, Wifi, WifiOff, Plus, Settings, X } from "lucide-react";
 import clsx from "clsx";
+import { useTranslation } from "@/context/LanguageContext";
 
 type Device = { id: number; name: string; type: "pos" | "printer" | "scanner"; ip: string; online: boolean; branch: string };
 
@@ -14,9 +15,14 @@ const INIT: Device[] = [
   { id: 3, name: "เครื่องสแกนบาร์โค้ด", type: "scanner", ip: "-", online: false, branch: "สาขาหลัก" },
 ];
 let nextId = 10;
-const TYPES = { pos: { label: "POS", icon: Monitor, color: "text-blue-500", bg: "bg-blue-50" }, printer: { label: "เครื่องพิมพ์", icon: Printer, color: "text-emerald-500", bg: "bg-emerald-50" }, scanner: { label: "สแกนเนอร์", icon: Settings, color: "text-violet-500", bg: "bg-violet-50" } };
 
 export default function DevicesPage() {
+  const t = useTranslation();
+  const TYPES = {
+    pos: { label: "POS", icon: Monitor, color: "text-blue-500", bg: "bg-blue-50" },
+    printer: { label: t("devices_printer"), icon: Printer, color: "text-emerald-500", bg: "bg-emerald-50" },
+    scanner: { label: t("devices_scanner"), icon: Settings, color: "text-violet-500", bg: "bg-violet-50" }
+  };
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [devices, setDevices] = useState<Device[]>(INIT);
   const [modal, setModal] = useState(false);
@@ -33,26 +39,26 @@ export default function DevicesPage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">อุปกรณ์</h1>
+              <h1 className="text-xl font-bold text-slate-800">{t("devices_title")}</h1>
               <button onClick={() => { setForm({ name: "", type: "pos", ip: "", branch: "สาขาหลัก" }); setModal(true); }}
                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
-                <Plus size={16} /> เพิ่มอุปกรณ์
+                <Plus size={16} /> {t("devices_add")}
               </button>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500">อุปกรณ์ทั้งหมด</p>
+                <p className="text-[12px] text-slate-500">{t("devices_total")}</p>
                 <p className="text-xl font-bold text-blue-600">{devices.length}</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500">ออนไลน์</p>
+                <p className="text-[12px] text-slate-500">{t("devices_online")}</p>
                 <p className="text-xl font-bold text-emerald-600">{devices.filter(d => d.online).length}</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500">ออฟไลน์</p>
+                <p className="text-[12px] text-slate-500">{t("devices_offline")}</p>
                 <p className="text-xl font-bold text-slate-400">{devices.filter(d => !d.online).length}</p>
               </div>
             </div>
@@ -60,11 +66,11 @@ export default function DevicesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium">อุปกรณ์</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium">ประเภท</th>
+                    <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("devices_device_col")}</th>
+                    <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("devices_type_col")}</th>
                     <th className="text-left px-4 py-3 text-slate-500 font-medium">IP Address</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium">สาขา</th>
-                    <th className="text-center px-4 py-3 text-slate-500 font-medium">สถานะ</th>
+                    <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("devices_branch_col")}</th>
+                    <th className="text-center px-4 py-3 text-slate-500 font-medium">{t("col_status")}</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -88,13 +94,13 @@ export default function DevicesPage() {
                           <span className={clsx("flex items-center justify-center gap-1.5 text-[12px] font-medium",
                             d.online ? "text-emerald-600" : "text-slate-400")}>
                             {d.online ? <Wifi size={12} /> : <WifiOff size={12} />}
-                            {d.online ? "ออนไลน์" : "ออฟไลน์"}
+                            {d.online ? t("devices_online") : t("devices_offline")}
                           </span>
                         </td>
                         <td className="px-4 py-3">
                           <button onClick={() => toggle(d.id)}
                             className="text-[11px] px-3 py-1 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-                            {d.online ? "ตัดการเชื่อมต่อ" : "เชื่อมต่อ"}
+                            {d.online ? t("devices_disconnect") : t("devices_connect")}
                           </button>
                         </td>
                       </tr>
@@ -110,24 +116,24 @@ export default function DevicesPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setModal(false)}>
           <div className="bg-white rounded-2xl p-6 w-96 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-lg">เพิ่มอุปกรณ์</h2>
+              <h2 className="font-bold text-lg">{t("devices_add")}</h2>
               <button onClick={() => setModal(false)} className="text-slate-400"><X size={20} /></button>
             </div>
             <div className="space-y-3">
-              <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="ชื่ออุปกรณ์"
+              <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder={t("devices_name_placeholder")}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
               <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value as Device["type"] }))}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
                 <option value="pos">POS</option>
-                <option value="printer">เครื่องพิมพ์</option>
-                <option value="scanner">สแกนเนอร์</option>
+                <option value="printer">{t("devices_printer")}</option>
+                <option value="scanner">{t("devices_scanner")}</option>
               </select>
               <input value={form.ip} onChange={e => setForm(p => ({ ...p, ip: e.target.value }))} placeholder="IP Address"
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
             </div>
             <div className="flex gap-2 mt-4">
-              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">ยกเลิก</button>
-              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">เพิ่ม</button>
+              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">{t("common_cancel")}</button>
+              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">{t("common_add")}</button>
             </div>
           </div>
         </div>

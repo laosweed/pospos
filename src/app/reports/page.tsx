@@ -9,37 +9,39 @@ import {
 } from "lucide-react";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
 import clsx from "clsx";
+import { useTranslation } from "@/context/LanguageContext";
+import type { Dict } from "@/i18n/types";
 
 function thb(v: number) { return v.toLocaleString("th-TH", { minimumFractionDigits: 2 }); }
 function fmtDate(s: string) { return new Date(s).toLocaleDateString("th-TH", { day: "2-digit", month: "2-digit", year: "numeric" }); }
 
-/* ─── Report tab definitions (matches real POSPOS /core/sale/report) ── */
-const TABS = [
-  { id: "graph",    label: "กราฟ",          icon: BarChart2 },
-  { id: "product",  label: "สินค้า",        icon: ShoppingBag },
-  { id: "staff",    label: "พนักงาน",       icon: Users },
-  { id: "customer", label: "ลูกค้า",        icon: Users },
-  { id: "branch",   label: "สาขา",          icon: Store },
-  { id: "payment",  label: "วิธีชำระเงิน",  icon: CreditCard },
-  { id: "delivery", label: "เดลิเวอรี่",    icon: Truck },
-  { id: "document", label: "เอกสาร",        icon: FileText },
-  { id: "note",     label: "โน้ต",          icon: StickyNote },
-  { id: "category", label: "หมวดหมู่",      icon: Layers },
-  { id: "pos",      label: "เครื่อง POS",   icon: Monitor },
-  { id: "promo",    label: "โปรโมชั่น",     icon: Gift },
-] as const;
-
-type TabId = typeof TABS[number]["id"];
+type TabId = "graph" | "product" | "staff" | "customer" | "branch" | "payment" | "delivery" | "document" | "note" | "category" | "pos" | "promo";
 type DaySummary = { sale_date: string; total_bills: number; cancelled_bills: number; total_revenue: number; avg_per_bill: number };
 type TopProduct = { name: string; qty: number; revenue: number; cost: number };
 
 export default function ReportsPage() {
+  const t = useTranslation();
   const [tab, setTab] = useState<TabId>("graph");
   const [period, setPeriod] = useState<"7" | "30" | "90">("30");
   const [summary, setSummary] = useState<DaySummary[]>([]);
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  const TABS = [
+    { id: "graph" as TabId,    label: t("rep_tab_graph"),    icon: BarChart2 },
+    { id: "product" as TabId,  label: t("rep_tab_product"),  icon: ShoppingBag },
+    { id: "staff" as TabId,    label: t("rep_tab_staff"),    icon: Users },
+    { id: "customer" as TabId, label: t("rep_tab_customer"), icon: Users },
+    { id: "branch" as TabId,   label: t("rep_tab_branch"),   icon: Store },
+    { id: "payment" as TabId,  label: t("rep_tab_payment"),  icon: CreditCard },
+    { id: "delivery" as TabId, label: t("rep_tab_delivery"), icon: Truck },
+    { id: "document" as TabId, label: t("rep_tab_document"), icon: FileText },
+    { id: "note" as TabId,     label: t("rep_tab_note"),     icon: StickyNote },
+    { id: "category" as TabId, label: t("rep_tab_category"), icon: Layers },
+    { id: "pos" as TabId,      label: t("rep_tab_pos"),      icon: Monitor },
+    { id: "promo" as TabId,    label: t("rep_tab_promo"),    icon: Gift },
+  ];
 
   useEffect(() => {
     const load = async () => {
@@ -77,12 +79,12 @@ export default function ReportsPage() {
   return (
     <PageShell>
       <div className="p-4 space-y-3">
-        {/* ── Page header (AdminLTE content-header style) ── */}
+        {/* ── Page header ── */}
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-slate-800">รายงาน</h1>
+          <h1 className="text-lg font-bold text-slate-800">{t("item_reports")}</h1>
           <div className="flex items-center gap-2">
             <button className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded text-sm hover:bg-slate-50">
-              <Download size={13} /> นำออก Excel
+              <Download size={13} /> {t("rep_export_excel")}
             </button>
             <div className="flex gap-0.5 bg-white rounded border border-slate-200 p-0.5">
               {(["7","30","90"] as const).map(v => (
@@ -90,32 +92,31 @@ export default function ReportsPage() {
                   className={clsx("px-3 py-1 rounded text-xs font-medium transition-colors",
                     period === v ? "bg-[#3c8dbc] text-white" : "text-slate-600 hover:bg-slate-100"
                   )}>
-                  {v} วัน
+                  {v} {t("rep_days")}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* ── KPI summary cards (AdminLTE info-box style) ── */}
+        {/* ── KPI summary cards ── */}
         <div className="grid grid-cols-4 gap-3">
-          <InfoBox icon={TrendingUp} color="#3c8dbc" label="ยอดขาย" value={`${thb(totalRevenue)} ฿`} />
-          <InfoBox icon={ShoppingBag} color="#00a65a" label="จำนวนบิล" value={`${totalBills} บิล`} />
-          <InfoBox icon={BarChart2} color="#f39c12" label="เฉลี่ย/บิล" value={`${thb(avgPerBill)} ฿`} />
-          <InfoBox icon={TrendingUp} color="#dd4b39" label="กำไรสุทธิ" value={`${thb(totalRevenue * 0.3)} ฿`} />
+          <InfoBox icon={TrendingUp} color="#3c8dbc" label={t("rep_kpi_revenue")} value={`${thb(totalRevenue)} ฿`} />
+          <InfoBox icon={ShoppingBag} color="#00a65a" label={t("rep_kpi_bills")} value={`${totalBills} ${t("shift_bills")}`} />
+          <InfoBox icon={BarChart2} color="#f39c12" label={t("rep_kpi_avg")} value={`${thb(avgPerBill)} ฿`} />
+          <InfoBox icon={TrendingUp} color="#dd4b39" label={t("rep_kpi_profit")} value={`${thb(totalRevenue * 0.3)} ฿`} />
         </div>
 
-        {/* ── Report tabs (matches real POSPOS sub-tabs) ── */}
+        {/* ── Report tabs ── */}
         <div className="bg-white rounded shadow-sm">
-          {/* Tab bar */}
           <div className="flex items-center border-b border-slate-200 overflow-x-auto">
-            {TABS.map(t => {
-              const Icon = t.icon;
-              const active = tab === t.id;
+            {TABS.map(tabItem => {
+              const Icon = tabItem.icon;
+              const active = tab === tabItem.id;
               return (
                 <button
-                  key={t.id}
-                  onClick={() => setTab(t.id)}
+                  key={tabItem.id}
+                  onClick={() => setTab(tabItem.id)}
                   className={clsx(
                     "flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium whitespace-nowrap border-b-2 transition-colors flex-shrink-0",
                     active
@@ -124,13 +125,12 @@ export default function ReportsPage() {
                   )}
                 >
                   <Icon size={13} />
-                  {t.label}
+                  {tabItem.label}
                 </button>
               );
             })}
           </div>
 
-          {/* Tab content */}
           <div className="p-4">
             {loading ? (
               <div className="flex justify-center py-16">
@@ -138,18 +138,18 @@ export default function ReportsPage() {
               </div>
             ) : (
               <>
-                {tab === "graph" && <GraphTab summary={summary} maxRevenue={maxRevenue} />}
-                {tab === "product" && <ProductTab products={topProducts} search={search} setSearch={setSearch} />}
-                {tab === "staff" && <PlaceholderTab title="รายงานพนักงาน" description="ยอดขายแยกตามพนักงานที่ล็อกอินขาย" icon={Users} />}
-                {tab === "customer" && <PlaceholderTab title="รายงานลูกค้า" description="ยอดขายแยกตามลูกค้าสมาชิก" icon={Users} />}
-                {tab === "branch" && <PlaceholderTab title="รายงานสาขา" description="ยอดขายแยกตามสาขา" icon={Store} />}
-                {tab === "payment" && <PaymentTab totalRevenue={totalRevenue} />}
-                {tab === "delivery" && <PlaceholderTab title="รายงานเดลิเวอรี่" description="ยอดตามการจัดส่ง" icon={Truck} />}
-                {tab === "document" && <PlaceholderTab title="รายงานเอกสาร" description="สรุปเอกสารที่ออก (ใบเสร็จ, ใบกำกับภาษี, ใบเสนอราคา)" icon={FileText} />}
-                {tab === "note" && <PlaceholderTab title="รายงานโน้ต" description="ยอดตามโน้ตที่แนบกับบิลขาย" icon={StickyNote} />}
-                {tab === "category" && <CategoryTab products={topProducts} />}
-                {tab === "pos" && <PlaceholderTab title="รายงานเครื่อง POS" description="ยอดขายแยกตามเครื่อง POS" icon={Monitor} />}
-                {tab === "promo" && <PlaceholderTab title="รายงานโปรโมชั่น" description="สรุปการใช้โปรโมชั่นและส่วนลด" icon={Gift} />}
+                {tab === "graph" && <GraphTab summary={summary} maxRevenue={maxRevenue} t={t} />}
+                {tab === "product" && <ProductTab products={topProducts} search={search} setSearch={setSearch} t={t} />}
+                {tab === "staff" && <PlaceholderTab title={t("rep_staff_title")} description={t("rep_staff_desc")} connectText={t("rep_placeholder_connect")} icon={Users} />}
+                {tab === "customer" && <PlaceholderTab title={t("rep_customer_title")} description={t("rep_customer_desc")} connectText={t("rep_placeholder_connect")} icon={Users} />}
+                {tab === "branch" && <PlaceholderTab title={t("rep_branch_title")} description={t("rep_branch_desc")} connectText={t("rep_placeholder_connect")} icon={Store} />}
+                {tab === "payment" && <PaymentTab totalRevenue={totalRevenue} t={t} />}
+                {tab === "delivery" && <PlaceholderTab title={t("rep_delivery_title")} description={t("rep_delivery_desc")} connectText={t("rep_placeholder_connect")} icon={Truck} />}
+                {tab === "document" && <PlaceholderTab title={t("rep_document_title")} description={t("rep_document_desc")} connectText={t("rep_placeholder_connect")} icon={FileText} />}
+                {tab === "note" && <PlaceholderTab title={t("rep_note_title")} description={t("rep_note_desc")} connectText={t("rep_placeholder_connect")} icon={StickyNote} />}
+                {tab === "category" && <CategoryTab products={topProducts} t={t} />}
+                {tab === "pos" && <PlaceholderTab title={t("rep_pos_title")} description={t("rep_pos_desc")} connectText={t("rep_placeholder_connect")} icon={Monitor} />}
+                {tab === "promo" && <PlaceholderTab title={t("rep_promo_title")} description={t("rep_promo_desc")} connectText={t("rep_placeholder_connect")} icon={Gift} />}
               </>
             )}
           </div>
@@ -161,12 +161,12 @@ export default function ReportsPage() {
 
 /* ─── Tab content components ────────────────────────────────── */
 
-function GraphTab({ summary, maxRevenue }: { summary: DaySummary[]; maxRevenue: number }) {
-  if (summary.length === 0) return <EmptyState text="ยังไม่มีข้อมูลยอดขาย" />;
+function GraphTab({ summary, maxRevenue, t }: { summary: DaySummary[]; maxRevenue: number; t: (k: keyof Dict) => string }) {
+  if (summary.length === 0) return <EmptyState text={t("rep_no_data")} />;
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-slate-700">ยอดขายรายวัน</h3>
+      <h3 className="text-sm font-semibold text-slate-700">{t("rep_daily_chart")}</h3>
       <div className="flex items-end gap-1 h-44 overflow-x-auto pb-2">
         {[...summary].reverse().map((d, i) => (
           <div key={i} className="flex flex-col items-center gap-1 flex-shrink-0" style={{ minWidth: 28 }}>
@@ -186,16 +186,15 @@ function GraphTab({ summary, maxRevenue }: { summary: DaySummary[]; maxRevenue: 
         ))}
       </div>
 
-      {/* Daily summary table */}
       <div className="border border-slate-200 rounded overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 text-slate-500 text-[11px]">
-              <th className="text-left px-3 py-2 font-semibold">วันที่</th>
-              <th className="text-right px-3 py-2 font-semibold">จำนวนบิล</th>
-              <th className="text-right px-3 py-2 font-semibold">ยกเลิก</th>
-              <th className="text-right px-3 py-2 font-semibold">ยอดรวม</th>
-              <th className="text-right px-3 py-2 font-semibold">เฉลี่ย/บิล</th>
+              <th className="text-left px-3 py-2 font-semibold">{t("rep_col_date")}</th>
+              <th className="text-right px-3 py-2 font-semibold">{t("rep_col_bills")}</th>
+              <th className="text-right px-3 py-2 font-semibold">{t("rep_col_cancelled")}</th>
+              <th className="text-right px-3 py-2 font-semibold">{t("rep_col_total")}</th>
+              <th className="text-right px-3 py-2 font-semibold">{t("rep_col_avg")}</th>
             </tr>
           </thead>
           <tbody>
@@ -211,7 +210,7 @@ function GraphTab({ summary, maxRevenue }: { summary: DaySummary[]; maxRevenue: 
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-slate-200 bg-slate-50 font-semibold text-sm">
-              <td className="px-3 py-2 text-slate-700">รวม</td>
+              <td className="px-3 py-2 text-slate-700">{t("rep_total")}</td>
               <td className="px-3 py-2 text-right">{summary.reduce((s, d) => s + d.total_bills, 0)}</td>
               <td className="px-3 py-2 text-right text-red-500">{summary.reduce((s, d) => s + d.cancelled_bills, 0)}</td>
               <td className="px-3 py-2 text-right text-[#3c8dbc]">{thb(summary.reduce((s, d) => s + d.total_revenue, 0))} ฿</td>
@@ -226,32 +225,32 @@ function GraphTab({ summary, maxRevenue }: { summary: DaySummary[]; maxRevenue: 
   );
 }
 
-function ProductTab({ products, search, setSearch }: { products: TopProduct[]; search: string; setSearch: (s: string) => void }) {
+function ProductTab({ products, search, setSearch, t }: { products: TopProduct[]; search: string; setSearch: (s: string) => void; t: (k: keyof Dict) => string }) {
   const filtered = search ? products.filter(p => p.name.includes(search)) : products;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-700">ยอดขายสินค้า {products.length} อันดับ</h3>
+        <h3 className="text-sm font-semibold text-slate-700">{t("rep_tab_product")} {products.length}</h3>
         <div className="relative">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="ค้นหา..."
+            placeholder={t("common_search")}
             className="pl-8 pr-3 py-1.5 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#3c8dbc]"
           />
         </div>
       </div>
-      {filtered.length === 0 ? <EmptyState text="ไม่พบข้อมูลสินค้า" /> : (
+      {filtered.length === 0 ? <EmptyState text={t("rep_no_product")} /> : (
         <div className="border border-slate-200 rounded overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 text-slate-500 text-[11px]">
                 <th className="text-left px-3 py-2 font-semibold">#</th>
-                <th className="text-left px-3 py-2 font-semibold">ชื่อสินค้า</th>
-                <th className="text-right px-3 py-2 font-semibold">ขายได้</th>
-                <th className="text-right px-3 py-2 font-semibold">จำนวน</th>
-                <th className="text-right px-3 py-2 font-semibold">รวมเป็นเงิน</th>
+                <th className="text-left px-3 py-2 font-semibold">{t("col_name")}</th>
+                <th className="text-right px-3 py-2 font-semibold">{t("rep_col_sold")}</th>
+                <th className="text-right px-3 py-2 font-semibold">{t("rep_col_qty")}</th>
+                <th className="text-right px-3 py-2 font-semibold">{t("rep_col_amount")}</th>
               </tr>
             </thead>
             <tbody>
@@ -260,16 +259,16 @@ function ProductTab({ products, search, setSearch }: { products: TopProduct[]; s
                   <td className="px-3 py-2 text-slate-400">{i + 1}</td>
                   <td className="px-3 py-2 font-medium text-slate-700">{p.name}</td>
                   <td className="px-3 py-2 text-right text-slate-600">{p.qty}</td>
-                  <td className="px-3 py-2 text-right text-slate-600">{p.qty} ชิ้น</td>
+                  <td className="px-3 py-2 text-right text-slate-600">{p.qty}</td>
                   <td className="px-3 py-2 text-right font-medium text-[#3c8dbc]">{thb(p.revenue)} ฿</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-slate-200 bg-slate-50 font-semibold">
-                <td colSpan={2} className="px-3 py-2">รวม</td>
+                <td colSpan={2} className="px-3 py-2">{t("rep_total")}</td>
                 <td className="px-3 py-2 text-right">{filtered.reduce((s, p) => s + p.qty, 0)}</td>
-                <td className="px-3 py-2 text-right">{filtered.reduce((s, p) => s + p.qty, 0)} ชิ้น</td>
+                <td className="px-3 py-2 text-right">{filtered.reduce((s, p) => s + p.qty, 0)}</td>
                 <td className="px-3 py-2 text-right text-[#3c8dbc]">{thb(filtered.reduce((s, p) => s + p.revenue, 0))} ฿</td>
               </tr>
             </tfoot>
@@ -280,27 +279,27 @@ function ProductTab({ products, search, setSearch }: { products: TopProduct[]; s
   );
 }
 
-function PaymentTab({ totalRevenue }: { totalRevenue: number }) {
+function PaymentTab({ totalRevenue, t }: { totalRevenue: number; t: (k: keyof Dict) => string }) {
   const methods = [
-    { name: "เงินสด", amount: totalRevenue * 0.6, count: 12, color: "#3c8dbc" },
-    { name: "โอนผ่านธนาคาร", amount: totalRevenue * 0.2, count: 5, color: "#00a65a" },
-    { name: "คิวอาร์ (พร้อมเพย์)", amount: totalRevenue * 0.12, count: 4, color: "#f39c12" },
-    { name: "บัตรเครดิต", amount: totalRevenue * 0.05, count: 2, color: "#dd4b39" },
-    { name: "บัตรเดบิต", amount: totalRevenue * 0.03, count: 1, color: "#605ca8" },
+    { name: t("payment_cash"),     amount: totalRevenue * 0.6,  count: 12, color: "#3c8dbc" },
+    { name: t("item_transfer"),    amount: totalRevenue * 0.2,  count: 5,  color: "#00a65a" },
+    { name: t("payment_qr"),       amount: totalRevenue * 0.12, count: 4,  color: "#f39c12" },
+    { name: t("payment_card"),     amount: totalRevenue * 0.05, count: 2,  color: "#dd4b39" },
+    { name: t("payment_card"),     amount: totalRevenue * 0.03, count: 1,  color: "#605ca8" },
   ];
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-slate-700">วิธีชำระเงิน {methods.length} อันดับ</h3>
+      <h3 className="text-sm font-semibold text-slate-700">{t("rep_payment_title")}</h3>
       <div className="border border-slate-200 rounded overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 text-slate-500 text-[11px]">
               <th className="w-3 px-3 py-2"></th>
-              <th className="text-left px-3 py-2 font-semibold">วิธีชำระ</th>
-              <th className="text-right px-3 py-2 font-semibold">จำนวนบิล</th>
-              <th className="text-right px-3 py-2 font-semibold">ยอดรวม</th>
-              <th className="text-right px-3 py-2 font-semibold">สัดส่วน</th>
+              <th className="text-left px-3 py-2 font-semibold">{t("rep_col_pay_method")}</th>
+              <th className="text-right px-3 py-2 font-semibold">{t("rep_col_bills")}</th>
+              <th className="text-right px-3 py-2 font-semibold">{t("rep_col_total")}</th>
+              <th className="text-right px-3 py-2 font-semibold">{t("rep_col_ratio")}</th>
             </tr>
           </thead>
           <tbody>
@@ -320,27 +319,26 @@ function PaymentTab({ totalRevenue }: { totalRevenue: number }) {
   );
 }
 
-function CategoryTab({ products }: { products: TopProduct[] }) {
-  // Group by mock category
+function CategoryTab({ products, t }: { products: TopProduct[]; t: (k: keyof Dict) => string }) {
   const categories = [
     { name: "เครื่องดื่ม", qty: 45, revenue: products.reduce((s, p) => s + p.revenue, 0) * 0.4 },
-    { name: "เบเกอรี่", qty: 32, revenue: products.reduce((s, p) => s + p.revenue, 0) * 0.35 },
-    { name: "ขนมปัง", qty: 20, revenue: products.reduce((s, p) => s + p.revenue, 0) * 0.15 },
-    { name: "อื่นๆ", qty: 10, revenue: products.reduce((s, p) => s + p.revenue, 0) * 0.1 },
+    { name: "เบเกอรี่",    qty: 32, revenue: products.reduce((s, p) => s + p.revenue, 0) * 0.35 },
+    { name: "ขนมปัง",     qty: 20, revenue: products.reduce((s, p) => s + p.revenue, 0) * 0.15 },
+    { name: "อื่นๆ",      qty: 10, revenue: products.reduce((s, p) => s + p.revenue, 0) * 0.1 },
   ];
   const totalRev = categories.reduce((s, c) => s + c.revenue, 0);
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-slate-700">หมวดหมู่สินค้า</h3>
+      <h3 className="text-sm font-semibold text-slate-700">{t("rep_category_title")}</h3>
       <div className="border border-slate-200 rounded overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 text-slate-500 text-[11px]">
-              <th className="text-left px-3 py-2 font-semibold">หมวดหมู่</th>
-              <th className="text-right px-3 py-2 font-semibold">ขายได้</th>
-              <th className="text-right px-3 py-2 font-semibold">จำนวน</th>
-              <th className="text-right px-3 py-2 font-semibold">รวมเป็นเงิน</th>
+              <th className="text-left px-3 py-2 font-semibold">{t("rep_col_category")}</th>
+              <th className="text-right px-3 py-2 font-semibold">{t("rep_col_sold")}</th>
+              <th className="text-right px-3 py-2 font-semibold">{t("rep_col_qty")}</th>
+              <th className="text-right px-3 py-2 font-semibold">{t("rep_col_amount")}</th>
             </tr>
           </thead>
           <tbody>
@@ -348,16 +346,16 @@ function CategoryTab({ products }: { products: TopProduct[] }) {
               <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
                 <td className="px-3 py-2 font-medium text-slate-700">{c.name}</td>
                 <td className="px-3 py-2 text-right text-slate-600">{c.qty}</td>
-                <td className="px-3 py-2 text-right text-slate-600">{c.qty} ชิ้น</td>
+                <td className="px-3 py-2 text-right text-slate-600">{c.qty}</td>
                 <td className="px-3 py-2 text-right font-medium text-[#3c8dbc]">{thb(c.revenue)} ฿</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-slate-200 bg-slate-50 font-semibold">
-              <td className="px-3 py-2">รวม</td>
+              <td className="px-3 py-2">{t("rep_total")}</td>
               <td className="px-3 py-2 text-right">{categories.reduce((s, c) => s + c.qty, 0)}</td>
-              <td className="px-3 py-2 text-right">{categories.reduce((s, c) => s + c.qty, 0)} ชิ้น</td>
+              <td className="px-3 py-2 text-right">{categories.reduce((s, c) => s + c.qty, 0)}</td>
               <td className="px-3 py-2 text-right text-[#3c8dbc]">{thb(totalRev)} ฿</td>
             </tr>
           </tfoot>
@@ -367,7 +365,7 @@ function CategoryTab({ products }: { products: TopProduct[] }) {
   );
 }
 
-function PlaceholderTab({ title, description, icon: Icon }: { title: string; description: string; icon: typeof Users }) {
+function PlaceholderTab({ title, description, connectText, icon: Icon }: { title: string; description: string; connectText: string; icon: typeof Users }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-3">
       <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
@@ -375,7 +373,7 @@ function PlaceholderTab({ title, description, icon: Icon }: { title: string; des
       </div>
       <h3 className="text-base font-semibold text-slate-700">{title}</h3>
       <p className="text-sm text-slate-400">{description}</p>
-      <p className="text-xs text-slate-300">เชื่อมต่อข้อมูลจากฐานข้อมูลเพื่อแสดงรายงาน</p>
+      <p className="text-xs text-slate-300">{connectText}</p>
     </div>
   );
 }
@@ -389,11 +387,6 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
-{/* .info-box { min-height:90px; border-radius:2px; box-shadow:0 1px 1px rgba(0,0,0,0.1) }
-   .info-box-icon { width:90px; height:90px; font-size:45px; line-height:90px; border-radius:2px 0 0 2px }
-   .info-box-content { padding:5px 10px; margin-left:90px }
-   .info-box-text { text-transform:uppercase; font-size:14px }
-   .info-box-number { font-weight:bold; font-size:18px } */}
 function InfoBox({ icon: Icon, color, label, value }: { icon: typeof TrendingUp; color: string; label: string; value: string }) {
   return (
     <div className="bg-white flex items-stretch overflow-hidden" style={{ minHeight: 90, borderRadius: 2, boxShadow: "0 1px 1px rgba(0,0,0,0.1)", marginBottom: 15 }}>

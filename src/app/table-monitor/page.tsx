@@ -3,6 +3,7 @@
 import { useState } from "react";
 import PageShell from "@/components/PageShell";
 import clsx from "clsx";
+import { useTranslation } from "@/context/LanguageContext";
 
 type TableStatus = "empty" | "occupied" | "bill" | "reserved";
 
@@ -23,16 +24,20 @@ const INITIAL: Table[] = [
   { id:"t8",  name:"โต๊ะ 8", seats:8, status:"empty" },
 ];
 
-const STATUS_STYLE: Record<TableStatus,{ label:string; bg:string; text:string; border:string }> = {
-  empty:    { label:"ว่าง",       bg:"#f0fdf4", text:"#10b981", border:"#bbf7d0" },
-  occupied: { label:"มีลูกค้า",   bg:"#eff6ff", text:"#3b82f6", border:"#bfdbfe" },
-  bill:     { label:"เรียกบิล",   bg:"#fffbeb", text:"#f59e0b", border:"#fde68a" },
-  reserved: { label:"จอง",        bg:"#f5f3ff", text:"#8b5cf6", border:"#ddd6fe" },
-};
-
 export default function TableMonitorPage() {
+  const t = useTranslation();
+
+  const STATUS_STYLE = (): Record<TableStatus,{ label:string; bg:string; text:string; border:string }> => ({
+    empty:    { label: t("table_empty"),    bg:"#f0fdf4", text:"#10b981", border:"#bbf7d0" },
+    occupied: { label: t("table_occupied"), bg:"#eff6ff", text:"#3b82f6", border:"#bfdbfe" },
+    bill:     { label: t("table_bill"),     bg:"#fffbeb", text:"#f59e0b", border:"#fde68a" },
+    reserved: { label: t("table_reserved"), bg:"#f5f3ff", text:"#8b5cf6", border:"#ddd6fe" },
+  });
+
   const [tables, setTables] = useState(INITIAL);
   const [selected, setSelected] = useState<Table|null>(null);
+
+  const statusStyle = STATUS_STYLE();
 
   const counts = {
     empty: tables.filter(t=>t.status==="empty").length,
@@ -42,22 +47,22 @@ export default function TableMonitorPage() {
   };
 
   const clear = (id: string) => {
-    setTables(prev => prev.map(t => t.id===id ? {...t, status:"empty", order:undefined, reservedFor:undefined} : t));
+    setTables(prev => prev.map(tb => tb.id===id ? {...tb, status:"empty", order:undefined, reservedFor:undefined} : tb));
     setSelected(null);
   };
 
   return (
     <PageShell>
       <div className="p-5 space-y-4">
-        <h1 className="text-xl font-bold text-slate-800">มอนิเตอร์โต๊ะ</h1>
+        <h1 className="text-xl font-bold text-slate-800">{t("table_title")}</h1>
 
         <div className="grid grid-cols-4 gap-3">
-          {Object.entries(counts).map(([status,count]) => {
-            const st = STATUS_STYLE[status as TableStatus];
+          {(Object.entries(counts) as [TableStatus, number][]).map(([status,count]) => {
+            const st = statusStyle[status];
             return (
               <div key={status} className="bg-white rounded-xl p-4 shadow-sm border-l-4" style={{ borderLeftColor:st.text }}>
                 <p className="text-[12px] text-slate-500">{st.label}</p>
-                <p className="text-[22px] font-bold" style={{ color:st.text }}>{count} โต๊ะ</p>
+                <p className="text-[22px] font-bold" style={{ color:st.text }}>{count} {t("table_unit")}</p>
               </div>
             );
           })}
@@ -65,7 +70,7 @@ export default function TableMonitorPage() {
 
         <div className="grid grid-cols-4 gap-3">
           {tables.map(table => {
-            const st = STATUS_STYLE[table.status];
+            const st = statusStyle[table.status];
             return (
               <button key={table.id} onClick={() => setSelected(table)}
                 className="rounded-2xl p-4 text-left shadow-sm hover:shadow-md transition-shadow border-2"
@@ -76,7 +81,7 @@ export default function TableMonitorPage() {
                     {st.label}
                   </span>
                 </div>
-                <p className="text-[12px] text-slate-400 mb-2">{table.seats} ที่นั่ง</p>
+                <p className="text-[12px] text-slate-400 mb-2">{table.seats} {t("table_seats")}</p>
                 {table.order && (
                   <>
                     <p className="text-[12px] text-slate-600 mb-1">{table.order.items.slice(0,2).join(", ")}{table.order.items.length>2?`...`:""}</p>
@@ -105,17 +110,17 @@ export default function TableMonitorPage() {
                   ))}
                 </div>
                 <div className="flex justify-between font-bold text-lg mb-4">
-                  <span>ยอดรวม</span><span className="text-blue-600">{selected.order.total} ฿</span>
+                  <span>{t("col_total")}</span><span className="text-blue-600">{selected.order.total} ฿</span>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={()=>setSelected(null)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm">ปิด</button>
-                  <button onClick={()=>clear(selected.id)} className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700">เก็บโต๊ะ</button>
+                  <button onClick={()=>setSelected(null)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm">{t("table_close")}</button>
+                  <button onClick={()=>clear(selected.id)} className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700">{t("table_clear")}</button>
                 </div>
               </>
             ) : (
               <div className="text-center py-4">
-                <p className="text-slate-400 mb-4">โต๊ะ{STATUS_STYLE[selected.status].label}</p>
-                <button onClick={()=>setSelected(null)} className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-sm">ปิด</button>
+                <p className="text-slate-400 mb-4">{selected.name} {statusStyle[selected.status].label}</p>
+                <button onClick={()=>setSelected(null)} className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-semibold text-sm">{t("table_close")}</button>
               </div>
             )}
           </div>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import PageShell from "@/components/PageShell";
 import { Search, Award, Gift } from "lucide-react";
+import { useTranslation } from "@/context/LanguageContext";
 
 const REWARDS = [
   { id:"r1", name:"ส่วนลด 20 บาท",        emoji:"🎫", points:100, stock:99 },
@@ -21,6 +22,7 @@ const CUSTOMERS = [
 ];
 
 export default function PointsExchangePage() {
+  const t = useTranslation();
   const [search, setSearch] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<typeof CUSTOMERS[0]|null>(null);
   const [success, setSuccess] = useState<string|null>(null);
@@ -31,22 +33,21 @@ export default function PointsExchangePage() {
 
   const redeem = (reward: typeof REWARDS[0]) => {
     if (!selectedCustomer || selectedCustomer.points < reward.points) return;
-    setSuccess(`แลก "${reward.name}" สำเร็จ! หักแต้ม ${reward.points} แต้ม`);
+    setSuccess(`"${reward.name}" -${reward.points} ${t("pts_earn_label")}`);
     setTimeout(()=>setSuccess(null), 3000);
   };
 
   return (
     <PageShell>
       <div className="p-5 space-y-4">
-        <h1 className="text-xl font-bold text-slate-800">แลกแต้มสะสม</h1>
+        <h1 className="text-xl font-bold text-slate-800">{t("pts_ex_title")}</h1>
 
         <div className="flex gap-4">
-          {/* Customer search */}
           <div className="w-64 flex-shrink-0 space-y-3">
             <div className="bg-white rounded-xl p-3 shadow-sm">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
-                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาลูกค้า..."
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t("pts_ex_search_placeholder")}
                   className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"/>
               </div>
             </div>
@@ -60,7 +61,7 @@ export default function PointsExchangePage() {
                   <div>
                     <p className="text-sm font-medium text-slate-800">{c.name}</p>
                     <p className="text-[11px] text-amber-500 flex items-center gap-1">
-                      <Award size={10}/>{c.points.toLocaleString()} แต้ม
+                      <Award size={10}/>{c.points.toLocaleString()} {t("pts_earn_label")}
                     </p>
                   </div>
                 </button>
@@ -68,14 +69,13 @@ export default function PointsExchangePage() {
             </div>
           </div>
 
-          {/* Rewards */}
           <div className="flex-1">
             {selectedCustomer && (
               <div className="bg-gradient-to-r from-amber-400 to-amber-500 rounded-2xl p-4 mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-amber-100 text-sm">แต้มสะสมของ {selectedCustomer.name}</p>
+                  <p className="text-amber-100 text-sm">{t("pts_ex_customer_pts_label")} {selectedCustomer.name}</p>
                   <p className="text-white text-3xl font-bold">{selectedCustomer.points.toLocaleString()}</p>
-                  <p className="text-amber-200 text-sm">แต้ม</p>
+                  <p className="text-amber-200 text-sm">{t("pts_earn_label")}</p>
                 </div>
                 <Award size={48} className="text-white/30"/>
               </div>
@@ -96,14 +96,14 @@ export default function PointsExchangePage() {
                     <p className="text-sm font-semibold text-slate-800 text-center mb-1">{reward.name}</p>
                     <div className="flex items-center justify-center gap-1 text-amber-500 mb-3">
                       <Award size={12}/>
-                      <span className="text-[13px] font-bold">{reward.points.toLocaleString()} แต้ม</span>
+                      <span className="text-[13px] font-bold">{reward.points.toLocaleString()} {t("pts_earn_label")}</span>
                     </div>
                     <button
                       onClick={() => redeem(reward)}
                       disabled={!canRedeem}
                       className="w-full py-2 rounded-xl bg-amber-500 text-white text-[13px] font-semibold hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      <Gift size={12} className="inline mr-1"/>แลก
+                      <Gift size={12} className="inline mr-1"/>{t("pts_ex_redeem_btn")}
                     </button>
                   </div>
                 );
@@ -112,7 +112,7 @@ export default function PointsExchangePage() {
             {!selectedCustomer && (
               <div className="flex flex-col items-center justify-center h-48 text-slate-300 gap-2">
                 <Award size={48} strokeWidth={1}/>
-                <p>เลือกลูกค้าก่อนแลกแต้ม</p>
+                <p>{t("pts_ex_no_customer")}</p>
               </div>
             )}
           </div>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import PageShell from "@/components/PageShell";
 import { Clock, Play, Square, DollarSign, Users, Calendar } from "lucide-react";
 import clsx from "clsx";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface Shift {
   id: string;
@@ -32,12 +33,10 @@ function fmtTime(s: string) {
 }
 
 export default function ShiftPage() {
+  const t = useTranslation();
   const [filter, setFilter] = useState<"all" | "open" | "closed">("all");
 
-  const filtered = DEMO_SHIFTS.filter(s =>
-    filter === "all" || s.status === filter
-  );
-
+  const filtered = DEMO_SHIFTS.filter(s => filter === "all" || s.status === filter);
   const openShifts = DEMO_SHIFTS.filter(s => s.status === "open");
   const totalSales = DEMO_SHIFTS.filter(s => s.status === "closed").reduce((sum, s) => sum + s.sales, 0);
   const totalBills = DEMO_SHIFTS.filter(s => s.status === "closed").reduce((sum, s) => sum + s.bills, 0);
@@ -46,24 +45,22 @@ export default function ShiftPage() {
     <PageShell>
       <div className="p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-slate-800">กะการขาย</h1>
+          <h1 className="text-lg font-bold text-slate-800">{t("shift_title")}</h1>
           <button className="flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded" style={{ background: "#3c8dbc" }}>
-            <Play size={14} /> เปิดกะการขาย
+            <Play size={14} /> {t("shift_open_shift")}
           </button>
         </div>
 
-        {/* Summary cards */}
         <div className="grid grid-cols-4 gap-3">
-          <SummaryCard icon={Clock} color="#3c8dbc" label="กะที่เปิดอยู่" value={`${openShifts.length} กะ`} />
-          <SummaryCard icon={DollarSign} color="#00a65a" label="ยอดขายรวม (ปิดแล้ว)" value={`${thb(totalSales)} ฿`} />
-          <SummaryCard icon={Users} color="#f39c12" label="จำนวนบิลรวม" value={`${totalBills} บิล`} />
-          <SummaryCard icon={Calendar} color="#605ca8" label="วันนี้" value={new Date().toLocaleDateString("th-TH")} />
+          <SummaryCard icon={Clock} color="#3c8dbc" label={t("status_open")} value={`${openShifts.length}`} />
+          <SummaryCard icon={DollarSign} color="#00a65a" label={t("shift_sales")} value={`${thb(totalSales)} ฿`} />
+          <SummaryCard icon={Users} color="#f39c12" label={t("shift_bills")} value={`${totalBills}`} />
+          <SummaryCard icon={Calendar} color="#605ca8" label={t("col_date")} value={new Date().toLocaleDateString("th-TH")} />
         </div>
 
-        {/* Filter tabs */}
         <div className="bg-white rounded shadow-sm">
           <div className="flex border-b border-slate-200">
-            {([["all", "ทั้งหมด"], ["open", "กำลังเปิด"], ["closed", "ปิดแล้ว"]] as const).map(([v, l]) => (
+            {([["all", t("common_all")], ["open", t("status_open")], ["closed", t("status_closed")]] as const).map(([v, l]) => (
               <button key={v} onClick={() => setFilter(v)}
                 className={clsx(
                   "px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
@@ -77,20 +74,19 @@ export default function ShiftPage() {
             ))}
           </div>
 
-          {/* Shift table */}
           <div className="overflow-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-[11px]">
-                  <th className="text-left px-4 py-2.5 font-semibold">พนักงาน</th>
-                  <th className="text-left px-4 py-2.5 font-semibold">เวลาเข้า</th>
-                  <th className="text-left px-4 py-2.5 font-semibold">เวลาออก</th>
-                  <th className="text-right px-4 py-2.5 font-semibold">เงินเปิดกะ</th>
-                  <th className="text-right px-4 py-2.5 font-semibold">เงินปิดกะ</th>
-                  <th className="text-right px-4 py-2.5 font-semibold">ยอดขาย</th>
-                  <th className="text-right px-4 py-2.5 font-semibold">บิล</th>
-                  <th className="text-center px-4 py-2.5 font-semibold">สถานะ</th>
-                  <th className="text-center px-4 py-2.5 font-semibold">จัดการ</th>
+                  <th className="text-left px-4 py-2.5 font-semibold">{t("col_employee")}</th>
+                  <th className="text-left px-4 py-2.5 font-semibold">{t("shift_start_time")}</th>
+                  <th className="text-left px-4 py-2.5 font-semibold">{t("shift_end_time")}</th>
+                  <th className="text-right px-4 py-2.5 font-semibold">{t("shift_cash_start")}</th>
+                  <th className="text-right px-4 py-2.5 font-semibold">{t("shift_cash_end")}</th>
+                  <th className="text-right px-4 py-2.5 font-semibold">{t("shift_sales")}</th>
+                  <th className="text-right px-4 py-2.5 font-semibold">{t("shift_bills")}</th>
+                  <th className="text-center px-4 py-2.5 font-semibold">{t("col_status")}</th>
+                  <th className="text-center px-4 py-2.5 font-semibold">{t("col_actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -98,7 +94,8 @@ export default function ShiftPage() {
                   <tr key={shift.id} className="border-t border-slate-100 hover:bg-slate-50">
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: shift.status === "open" ? "#00a65a" : "#3c8dbc" }}>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                          style={{ background: shift.status === "open" ? "#00a65a" : "#3c8dbc" }}>
                           {shift.employee.charAt(0)}
                         </div>
                         <span className="font-medium text-slate-700">{shift.employee}</span>
@@ -111,20 +108,18 @@ export default function ShiftPage() {
                     <td className="px-4 py-2.5 text-right font-medium text-[#3c8dbc]">{thb(shift.sales)} ฿</td>
                     <td className="px-4 py-2.5 text-right text-slate-600">{shift.bills}</td>
                     <td className="px-4 py-2.5 text-center">
-                      <span className={clsx(
-                        "text-[11px] font-medium px-2 py-0.5 rounded",
-                        shift.status === "open" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
-                      )}>
-                        {shift.status === "open" ? "เปิดอยู่" : "ปิดแล้ว"}
+                      <span className={clsx("text-[11px] font-medium px-2 py-0.5 rounded",
+                        shift.status === "open" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500")}>
+                        {shift.status === "open" ? t("status_open") : t("status_closed")}
                       </span>
                     </td>
                     <td className="px-4 py-2.5 text-center">
                       {shift.status === "open" ? (
                         <button className="flex items-center gap-1 mx-auto text-xs font-medium text-red-500 hover:text-red-600">
-                          <Square size={11} /> ปิดกะ
+                          <Square size={11} /> {t("shift_close_shift")}
                         </button>
                       ) : (
-                        <button className="text-xs text-[#3c8dbc] hover:underline">ดูรายละเอียด</button>
+                        <button className="text-xs text-[#3c8dbc] hover:underline">{t("common_view")}</button>
                       )}
                     </td>
                   </tr>
@@ -134,7 +129,7 @@ export default function ShiftPage() {
             {filtered.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
                 <Clock size={36} strokeWidth={1} />
-                <p className="text-sm">ไม่มีข้อมูลกะการขาย</p>
+                <p className="text-sm">{t("common_no_data")}</p>
               </div>
             )}
           </div>

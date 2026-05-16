@@ -4,6 +4,7 @@ import { useState } from "react";
 import PageShell from "@/components/PageShell";
 import { AlertTriangle, Plus } from "lucide-react";
 import clsx from "clsx";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface ExpiryItem {
   id:string; name:string; emoji:string; batch:string; qty:number;
@@ -26,16 +27,17 @@ const DEMO: ExpiryItem[] = [
   { id:"e7", name:"แป้งสาลี",         emoji:"🌾", batch:"LOT-190", qty:20, expiryDate:"30/06/2026", daysLeft:107},
 ];
 
-function statusOf(days:number) {
-  if (days < 0) return { label:"หมดอายุแล้ว", color:"#ef4444", bg:"#fef2f2" };
-  if (days === 0) return { label:"หมดอายุวันนี้", color:"#ef4444", bg:"#fef2f2" };
-  if (days <= 3)  return { label:`อีก ${days} วัน`, color:"#f59e0b", bg:"#fffbeb" };
-  if (days <= 7)  return { label:`อีก ${days} วัน`, color:"#f97316", bg:"#fff7ed" };
-  return { label:`อีก ${days} วัน`, color:"#10b981", bg:"#f0fdf4" };
-}
-
 export default function ExpirationPage() {
+  const t = useTranslation();
   const [filter, setFilter] = useState<"all"|"critical"|"warning">("all");
+
+  const statusOf = (days: number) => {
+    if (days < 0)  return { label: t("expiry_status_expired"), color:"#ef4444", bg:"#fef2f2" };
+    if (days === 0) return { label: t("expiry_status_today"),   color:"#ef4444", bg:"#fef2f2" };
+    if (days <= 3)  return { label:`อีก ${days} ${t("rep_days")}`, color:"#f59e0b", bg:"#fffbeb" };
+    if (days <= 7)  return { label:`อีก ${days} ${t("rep_days")}`, color:"#f97316", bg:"#fff7ed" };
+    return { label:`อีก ${days} ${t("rep_days")}`, color:"#10b981", bg:"#f0fdf4" };
+  };
 
   const filtered = DEMO.filter(i =>
     filter==="all" || (filter==="critical" && i.daysLeft<=1) || (filter==="warning" && i.daysLeft<=7)
@@ -45,27 +47,27 @@ export default function ExpirationPage() {
     <PageShell>
       <div className="p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-800">วันหมดอายุสินค้า</h1>
+          <h1 className="text-xl font-bold text-slate-800">{t("expiry_title")}</h1>
           <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700">
-            <Plus size={15}/> เพิ่มสินค้า
+            <Plus size={15}/> {t("common_add_new")}
           </button>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label:"หมดอายุแล้ว/วันนี้", value:DEMO.filter(i=>i.daysLeft<=0).length, color:"#ef4444" },
-            { label:"เกือบหมดอายุ (≤7 วัน)", value:DEMO.filter(i=>i.daysLeft>0&&i.daysLeft<=7).length, color:"#f59e0b" },
-            { label:"ปกติ", value:DEMO.filter(i=>i.daysLeft>7).length, color:"#10b981" },
+            { label: t("expiry_expired_today"), value: DEMO.filter(i=>i.daysLeft<=0).length, color:"#ef4444" },
+            { label: t("expiry_near"), value: DEMO.filter(i=>i.daysLeft>0&&i.daysLeft<=7).length, color:"#f59e0b" },
+            { label: t("expiry_normal"), value: DEMO.filter(i=>i.daysLeft>7).length, color:"#10b981" },
           ].map(c => (
             <div key={c.label} className="bg-white rounded-xl p-4 shadow-sm">
               <p className="text-[12px] text-slate-500 mb-1">{c.label}</p>
-              <p className="text-[22px] font-bold" style={{ color:c.color }}>{c.value} รายการ</p>
+              <p className="text-[22px] font-bold" style={{ color:c.color }}>{c.value} {t("creditor_items_unit")}</p>
             </div>
           ))}
         </div>
 
         <div className="flex gap-2">
-          {([["all","ทั้งหมด"],["critical","วิกฤต (≤1 วัน)"],["warning","เตือน (≤7 วัน)"]] as const).map(([v,l]) => (
+          {([["all", t("common_all")],["critical", t("expiry_filter_critical")],["warning", t("expiry_filter_warning")]] as const).map(([v,l]) => (
             <button key={v} onClick={()=>setFilter(v)}
               className={clsx("px-4 py-2 rounded-xl text-sm font-medium transition-colors",
                 filter===v?"bg-blue-600 text-white":"bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
@@ -78,11 +80,11 @@ export default function ExpirationPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="text-left px-4 py-3 text-slate-500 font-medium">สินค้า</th>
-                <th className="text-left px-4 py-3 text-slate-500 font-medium">Lot/Batch</th>
-                <th className="text-right px-4 py-3 text-slate-500 font-medium">จำนวน</th>
-                <th className="text-center px-4 py-3 text-slate-500 font-medium">วันหมดอายุ</th>
-                <th className="text-center px-4 py-3 text-slate-500 font-medium">สถานะ</th>
+                <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("sku_product_col")}</th>
+                <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("expiry_lot_col")}</th>
+                <th className="text-right px-4 py-3 text-slate-500 font-medium">{t("col_stock")}</th>
+                <th className="text-center px-4 py-3 text-slate-500 font-medium">{t("expiry_date_col")}</th>
+                <th className="text-center px-4 py-3 text-slate-500 font-medium">{t("col_status")}</th>
               </tr>
             </thead>
             <tbody>

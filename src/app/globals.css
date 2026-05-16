@@ -92,3 +92,23 @@ input, select, textarea {
 
 /* ── Reset browser default margin ── */
 body { margin: 0; padding: 0; }
+
+/* ── Lao language: switch to Noto Sans Lao ── */
+[data-lang="lo"] html,
+[data-lang="lo"] body,
+html[data-lang="lo"],
+html[data-lang="lo"] body {
+  font-family: 'Noto Sans Lao', 'Noto Sans Thai', 'Sarabun', sans-serif !important;
+}
+[data-lang="lo"] button,
+[data-lang="lo"] input,
+[data-lang="lo"] select,
+[data-lang="lo"] textarea {
+  font-family: 'Noto Sans Lao', 'Noto Sans Thai', 'Sarabun', sans-serif !important;
+}
+
+/* ── English language: use standard sans-serif ── */
+html[data-lang="en"],
+html[data-lang="en"] body {
+  font-family: 'Helvetica Neue', Arial, sans-serif !important;
+}

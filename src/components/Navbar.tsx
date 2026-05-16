@@ -3,9 +3,11 @@
 import { useState } from "react";
 import {
   Menu, ChevronDown, Calculator, RefreshCw,
-  MapPin, Gauge, Bell, Globe,
+  MapPin, Gauge, Bell,
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
+import { useLanguage } from "@/context/LanguageContext";
+import type { LanguageCode } from "@/i18n/types";
 
 /*
  * Exact CSS from go.pospos.co:
@@ -28,6 +30,12 @@ const N = {
   sidebarWidth: 200,         // matches sidebar width
 };
 
+const LANG_OPTIONS: { code: LanguageCode; flag: string; label: string }[] = [
+  { code: "th", flag: "🇹🇭", label: "ภาษาไทย" },
+  { code: "lo", flag: "🇱🇦", label: "ພາສາລາວ" },
+  { code: "en", flag: "🇬🇧", label: "English" },
+];
+
 interface NavbarProps {
   onToggleSidebar: () => void;
   storeName?: string;
@@ -40,6 +48,8 @@ export default function Navbar({
   employeeName = "ชนิ่น เกษมทรัพย์",
 }: NavbarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const { lang, setLang, t } = useLanguage();
 
   const handleLogout = async () => {
     const supabase = createBrowserClient(
@@ -49,6 +59,8 @@ export default function Navbar({
     await supabase.auth.signOut();
     window.location.href = "/login";
   };
+
+  const currentLang = LANG_OPTIONS.find(l => l.code === lang) ?? LANG_OPTIONS[0];
 
   return (
     <nav
@@ -90,7 +102,7 @@ export default function Navbar({
       <div className="flex items-center h-full">
         <NavBtn title="เครื่องคิดเลข"><Calculator size={16} /></NavBtn>
         <NavBtn title="รีเฟรช"><RefreshCw size={16} /></NavBtn>
-        <NavBtn title="แจ้งเตือน" badge={3}><Bell size={16} /></NavBtn>
+        <NavBtn title={t("nav_notifications")} badge={3}><Bell size={16} /></NavBtn>
         <NavBtn title="สาขา"><MapPin size={16} /></NavBtn>
 
         {/* User dropdown — .navbar-nav>.user-menu */}
@@ -127,10 +139,10 @@ export default function Navbar({
                 <div className="p-2.5" style={{ background: "#f9f9f9" }}>
                   <div className="flex gap-2">
                     <button className="flex-1 py-2 text-center text-sm rounded border border-slate-300 text-slate-600 hover:bg-slate-100">
-                      โปรไฟล์
+                      {t("nav_profile")}
                     </button>
                     <button onClick={handleLogout} className="flex-1 py-2 text-center text-sm rounded border border-red-300 text-red-500 hover:bg-red-50">
-                      ออกจากระบบ
+                      {t("nav_logout")}
                     </button>
                   </div>
                 </div>
@@ -139,8 +151,43 @@ export default function Navbar({
           )}
         </div>
 
-        {/* Language */}
-        <NavBtn title="ภาษา"><Globe size={16} /></NavBtn>
+        {/* Language dropdown */}
+        <div className="relative h-full">
+          <button
+            onClick={() => setLangMenuOpen(v => !v)}
+            className="flex items-center gap-1.5 h-full px-3 transition-colors"
+            style={{ color: N.text, paddingTop: 15, paddingBottom: 15, lineHeight: "20px" }}
+            onMouseEnter={e => (e.currentTarget.style.background = N.hoverBg)}
+            onMouseLeave={e => (e.currentTarget.style.background = "")}
+            title="Language / ภาษา"
+          >
+            <span style={{ fontSize: 18 }}>{currentLang.flag}</span>
+            <ChevronDown size={11} style={{ color: N.textMuted }} />
+          </button>
+
+          {langMenuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setLangMenuOpen(false)} />
+              <div className="absolute right-0 top-[50px] bg-white shadow-xl z-50" style={{ width: 160, borderRadius: "0 0 4px 4px", border: "1px solid #ddd", borderTop: 0 }}>
+                {LANG_OPTIONS.map(opt => (
+                  <button
+                    key={opt.code}
+                    onClick={() => { setLang(opt.code); setLangMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors hover:bg-slate-50"
+                    style={{
+                      fontWeight: lang === opt.code ? 600 : 400,
+                      color: lang === opt.code ? "#0d6eb3" : "#444",
+                      borderLeft: lang === opt.code ? "3px solid #0d6eb3" : "3px solid transparent",
+                    }}
+                  >
+                    <span style={{ fontSize: 18 }}>{opt.flag}</span>
+                    <span>{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );

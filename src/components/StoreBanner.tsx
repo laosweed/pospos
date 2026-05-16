@@ -2,12 +2,14 @@
 
 import { Settings, ImageIcon } from "lucide-react";
 import type { Store } from "@/lib/supabase/types";
+import { useTranslation } from "@/context/LanguageContext";
 
 interface StoreBannerProps {
   store: Store;
 }
 
 export default function StoreBanner({ store }: StoreBannerProps) {
+  const t = useTranslation();
   return (
     <div
       className="relative overflow-hidden"
@@ -74,7 +76,7 @@ export default function StoreBanner({ store }: StoreBannerProps) {
                 fontFamily: "Sarabun, sans-serif",
               }}
             >
-              <option value="">ค้นหาเมนู</option>
+              <option value="">{t("dash_search_menu")}</option>
             </select>
             <svg
               className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2"

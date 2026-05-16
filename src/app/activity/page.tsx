@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { ShoppingCart, Package, Activity } from "lucide-react";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
+import { useTranslation } from "@/context/LanguageContext";
 
 function thb(v: number) { return v.toLocaleString("th-TH", { minimumFractionDigits: 2 }); }
 function fmtDate(s: string) {
@@ -15,6 +16,7 @@ function fmtDate(s: string) {
 type Event = { id: string; type: "sale" | "purchase"; title: string; detail: string; amount: number; time: string };
 
 export default function ActivityPage() {
+  const t = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +33,7 @@ export default function ActivityPage() {
         id: s.id,
         type: "sale" as const,
         title: `ขายสินค้า #${s.receipt_no ?? s.id.slice(0, 8)}`,
-        detail: `โดย ${(s.employees as { name: string } | null)?.name ?? "-"} · ${s.status === "completed" ? "สำเร็จ" : "ยกเลิก"}`,
+        detail: `โดย ${(s.employees as { name: string } | null)?.name ?? "-"} · ${s.status === "completed" ? t("status_completed") : t("status_cancelled")}`,
         amount: s.total,
         time: s.sold_at,
       }));
@@ -58,15 +60,15 @@ export default function ActivityPage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">กิจกรรมล่าสุด</h1>
+              <h1 className="text-xl font-bold text-slate-800">{t("activity_title")}</h1>
               <div className="flex gap-1 bg-white rounded-xl p-1 shadow-sm">
                 {(["all","sale","purchase"] as const).map(v => (
                   <button key={v} onClick={() => setFilter(v)}
                     className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${filter === v ? "bg-blue-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}>
-                    {v === "all" ? "ทั้งหมด" : v === "sale" ? "ขาย" : "รับสินค้า"}
+                    {v === "all" ? t("common_all") : v === "sale" ? t("activity_sale") : t("activity_purchase")}
                   </button>
                 ))}
               </div>
@@ -78,7 +80,7 @@ export default function ActivityPage() {
               <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                 {filtered.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-2">
-                    <Activity size={48} strokeWidth={1} /><p>ยังไม่มีกิจกรรม</p>
+                    <Activity size={48} strokeWidth={1} /><p>{t("activity_no_data")}</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-50">

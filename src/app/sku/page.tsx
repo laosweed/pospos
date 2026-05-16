@@ -7,12 +7,14 @@ import { Search, Plus, Edit2, Trash2, X } from "lucide-react";
 import clsx from "clsx";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
 import type { Product, Category } from "@/lib/supabase/types";
+import { useTranslation } from "@/context/LanguageContext";
 
 function thb(v: number) { return v.toLocaleString("th-TH", { minimumFractionDigits: 2 }); }
 
 const EMPTY = { name:"", sku:"", emoji:"🛍️", category_id:"" as string|null, price:0, cost:0, stock:0, active:true, image_url:null as string|null };
 
 export default function SkuPage() {
+  const t = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -65,18 +67,18 @@ export default function SkuPage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">สินค้า (SKU)</h1>
+              <h1 className="text-xl font-bold text-slate-800">{t("sku_title")}</h1>
               <button onClick={openNew} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700">
-                <Plus size={15}/> เพิ่มสินค้า
+                <Plus size={15}/> {t("common_add_new")}
               </button>
             </div>
             <div className="bg-white rounded-xl p-3 shadow-sm">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
-                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาชื่อ SKU..."
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t("sku_search_placeholder")}
                   className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"/>
               </div>
             </div>
@@ -87,13 +89,13 @@ export default function SkuPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100">
-                      <th className="text-left px-4 py-3 text-slate-500 font-medium">สินค้า</th>
+                      <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("sku_product_col")}</th>
                       <th className="text-left px-4 py-3 text-slate-500 font-medium">SKU</th>
-                      <th className="text-left px-4 py-3 text-slate-500 font-medium">หมวดหมู่</th>
-                      <th className="text-right px-4 py-3 text-slate-500 font-medium">ราคาขาย</th>
-                      <th className="text-right px-4 py-3 text-slate-500 font-medium">ต้นทุน</th>
-                      <th className="text-right px-4 py-3 text-slate-500 font-medium">กำไร%</th>
-                      <th className="text-center px-4 py-3 text-slate-500 font-medium">สถานะ</th>
+                      <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("col_category")}</th>
+                      <th className="text-right px-4 py-3 text-slate-500 font-medium">{t("col_price")}</th>
+                      <th className="text-right px-4 py-3 text-slate-500 font-medium">{t("col_cost")}</th>
+                      <th className="text-right px-4 py-3 text-slate-500 font-medium">{t("sku_margin_col")}</th>
+                      <th className="text-center px-4 py-3 text-slate-500 font-medium">{t("col_status")}</th>
                       <th className="px-4 py-3"/>
                     </tr>
                   </thead>
@@ -112,7 +114,7 @@ export default function SkuPage() {
                           </td>
                           <td className="px-4 py-3 text-center">
                             <span className={clsx("text-[11px] font-medium px-2.5 py-1 rounded-full", p.active?"bg-emerald-100 text-emerald-600":"bg-slate-100 text-slate-500")}>
-                              {p.active?"ใช้งาน":"ปิดใช้"}
+                              {p.active ? t("sku_status_on") : t("sku_status_off")}
                             </span>
                           </td>
                           <td className="px-4 py-3">
@@ -135,29 +137,29 @@ export default function SkuPage() {
         <div className="fixed inset-0 bg-black/40 flex justify-end z-50" onClick={()=>setEditing(null)}>
           <div className="bg-white w-[420px] h-full overflow-auto shadow-2xl p-6" onClick={e=>e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-bold text-lg text-slate-800">{isNew?"เพิ่มสินค้าใหม่":"แก้ไขสินค้า"}</h2>
+              <h2 className="font-bold text-lg text-slate-800">{isNew ? t("sku_add_title") : t("sku_edit_title")}</h2>
               <button onClick={()=>setEditing(null)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
             </div>
             <div className="space-y-4">
               <div className="text-center text-5xl mb-2">{form.emoji}</div>
-              {[["ชื่อสินค้า","name","text"],["SKU","sku","text"],["Emoji","emoji","text"]].map(([l,k,t])=>(
+              {([[t("sku_name_label"),"name","text"],["SKU","sku","text"],["Emoji","emoji","text"]] as [string,string,string][]).map(([l,k,tp])=>(
                 <div key={k}>
                   <label className="block text-xs font-medium text-slate-500 mb-1">{l}</label>
-                  <input type={t} value={(form as Record<string,unknown>)[k] as string}
+                  <input type={tp} value={(form as Record<string,unknown>)[k] as string}
                     onChange={e=>setForm(f=>({...f,[k]:e.target.value}))}
                     className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400"/>
                 </div>
               ))}
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">หมวดหมู่</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">{t("col_category")}</label>
                 <select value={form.category_id ?? ""} onChange={e=>setForm(f=>({...f,category_id:e.target.value||null}))}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-400">
-                  <option value="">-- ไม่ระบุ --</option>
+                  <option value="">-- {t("sort_no_category")} --</option>
                   {categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {[["ราคาขาย","price"],["ต้นทุน","cost"],["สต็อก","stock"]].map(([l,k])=>(
+                {([[t("col_price"),"price"],[t("col_cost"),"cost"],["Stock","stock"]] as [string,string][]).map(([l,k])=>(
                   <div key={k}>
                     <label className="block text-xs font-medium text-slate-500 mb-1">{l}</label>
                     <input type="number" value={(form as Record<string,unknown>)[k] as number}
@@ -167,7 +169,7 @@ export default function SkuPage() {
                 ))}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-700">สถานะการขาย</span>
+                <span className="text-sm font-medium text-slate-700">{t("sku_sale_status")}</span>
                 <button onClick={()=>setForm(f=>({...f,active:!f.active}))}
                   className={clsx("w-11 h-6 rounded-full relative transition-colors",form.active?"bg-blue-500":"bg-slate-300")}>
                   <div className={clsx("absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all",form.active?"left-5":"left-0.5")}/>
@@ -175,7 +177,7 @@ export default function SkuPage() {
               </div>
               <button onClick={handleSave} disabled={saving||!form.name}
                 className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50">
-                {saving?"กำลังบันทึก...":"บันทึก"}
+                {saving ? t("common_saving") : t("common_save")}
               </button>
             </div>
           </div>

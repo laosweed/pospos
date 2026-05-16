@@ -8,6 +8,7 @@ import clsx from "clsx";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
 import type { Product, Purchase, PurchaseItem } from "@/lib/supabase/types";
 import { useToast } from "@/components/Toast";
+import { useTranslation } from "@/context/LanguageContext";
 
 type RecentPurchase = Purchase & { item_count: number };
 
@@ -16,6 +17,7 @@ interface CartItem { product: Product; qty: number; unitCost: number }
 function thb(v: number) { return v.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 export default function BuyPage() {
+  const t = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [recent, setRecent] = useState<RecentPurchase[]>([]);
@@ -119,18 +121,18 @@ export default function BuyPage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 flex h-[calc(100vh-50px)] overflow-hidden" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 flex h-[calc(100vh-50px)] overflow-hidden" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
 
           {/* Left: product list */}
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="bg-white px-4 py-3 shadow-sm flex-shrink-0">
-              <h1 className="text-lg font-bold text-slate-800 mb-3">นำเข้า / รับซื้อสินค้า</h1>
+              <h1 className="text-lg font-bold text-slate-800 mb-3">{t("buy_title")}</h1>
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="ค้นหาสินค้า SKU..."
+                  placeholder={t("buy_search_placeholder")}
                   className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-400"
                 />
               </div>
@@ -165,15 +167,15 @@ export default function BuyPage() {
                   {/* Recent orders */}
                   <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                     <div className="px-4 py-3 border-b">
-                      <h2 className="font-semibold text-slate-700">รายการรับซื้อล่าสุด</h2>
+                      <h2 className="font-semibold text-slate-700">{t("buy_recent")}</h2>
                     </div>
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-slate-50">
-                          <th className="text-left px-4 py-2.5 text-slate-500 font-medium">วันที่</th>
-                          <th className="text-left px-4 py-2.5 text-slate-500 font-medium">ผู้ขาย</th>
-                          <th className="text-right px-4 py-2.5 text-slate-500 font-medium">รายการ</th>
-                          <th className="text-right px-4 py-2.5 text-slate-500 font-medium">ยอดรวม</th>
+                          <th className="text-left px-4 py-2.5 text-slate-500 font-medium">{t("col_date")}</th>
+                          <th className="text-left px-4 py-2.5 text-slate-500 font-medium">{t("stock_hist_supplier_col")}</th>
+                          <th className="text-right px-4 py-2.5 text-slate-500 font-medium">{t("stock_hist_items_col")}</th>
+                          <th className="text-right px-4 py-2.5 text-slate-500 font-medium">{t("col_total")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -198,15 +200,15 @@ export default function BuyPage() {
           {/* Right: order cart */}
           <div className="w-[320px] flex-shrink-0 flex flex-col bg-white shadow-lg">
             <div className="px-4 py-3 border-b flex-shrink-0">
-              <h2 className="font-bold text-slate-800">รายการสั่งซื้อ</h2>
+              <h2 className="font-bold text-slate-800">{t("buy_order_list")}</h2>
             </div>
 
             <div className="px-4 py-3 border-b flex-shrink-0">
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">ผู้ขาย/ซัพพลายเออร์</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1.5">{t("buy_supplier")}</label>
               <input
                 value={supplier}
                 onChange={e => setSupplier(e.target.value)}
-                placeholder="ชื่อร้านค้า/บริษัท..."
+                placeholder={t("buy_supplier_placeholder")}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
               />
             </div>
@@ -215,7 +217,7 @@ export default function BuyPage() {
               {cart.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-slate-300 gap-2">
                   <Package size={36} strokeWidth={1} />
-                  <p className="text-sm">เลือกสินค้าที่ต้องการสั่ง</p>
+                  <p className="text-sm">{t("buy_select_product")}</p>
                 </div>
               ) : cart.map(item => (
                 <div key={item.product.id} className="bg-slate-50 rounded-xl p-2.5 space-y-2">
@@ -260,7 +262,7 @@ export default function BuyPage() {
                 disabled={cart.length === 0 || saving}
                 className="w-full py-3.5 rounded-xl bg-purple-600 text-white font-bold text-[15px] hover:bg-purple-700 disabled:opacity-40 transition-colors"
               >
-                {saving ? "กำลังบันทึก..." : "บันทึกรายการรับซื้อ"}
+                {saving ? t("common_saving") : t("buy_save")}
               </button>
             </div>
           </div>

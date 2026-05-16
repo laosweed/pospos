@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Plus, Edit2, Trash2, Tag, X, Percent } from "lucide-react";
 import clsx from "clsx";
+import { useTranslation } from "@/context/LanguageContext";
 
 type Discount = { id: number; name: string; type: "percent" | "fixed"; value: number; minOrder: number; active: boolean };
 
@@ -18,6 +19,7 @@ function thb(v: number) { return v.toLocaleString("th-TH"); }
 let nextId = 10;
 
 export default function DiscountsPage() {
+  const t = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [discounts, setDiscounts] = useState<Discount[]>(INIT);
   const [modal, setModal] = useState(false);
@@ -40,27 +42,27 @@ export default function DiscountsPage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">ส่วนลด</h1>
+              <h1 className="text-xl font-bold text-slate-800">{t("discounts_title")}</h1>
               <button onClick={openNew} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
-                <Plus size={16} /> เพิ่มส่วนลด
+                <Plus size={16} /> {t("discounts_add")}
               </button>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500">ส่วนลดทั้งหมด</p>
-                <p className="text-xl font-bold text-blue-600">{discounts.length} รายการ</p>
+                <p className="text-[12px] text-slate-500">{t("discounts_total")}</p>
+                <p className="text-xl font-bold text-blue-600">{discounts.length} {t("creditor_items_unit")}</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500">ใช้งานอยู่</p>
-                <p className="text-xl font-bold text-emerald-600">{discounts.filter(d => d.active).length} รายการ</p>
+                <p className="text-[12px] text-slate-500">{t("status_active")}</p>
+                <p className="text-xl font-bold text-emerald-600">{discounts.filter(d => d.active).length} {t("creditor_items_unit")}</p>
               </div>
               <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500">ปิดใช้งาน</p>
-                <p className="text-xl font-bold text-slate-400">{discounts.filter(d => !d.active).length} รายการ</p>
+                <p className="text-[12px] text-slate-500">{t("status_inactive")}</p>
+                <p className="text-xl font-bold text-slate-400">{discounts.filter(d => !d.active).length} {t("creditor_items_unit")}</p>
               </div>
             </div>
 
@@ -68,11 +70,11 @@ export default function DiscountsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium">ชื่อส่วนลด</th>
-                    <th className="text-left px-4 py-3 text-slate-500 font-medium">ประเภท</th>
-                    <th className="text-right px-4 py-3 text-slate-500 font-medium">มูลค่า</th>
-                    <th className="text-right px-4 py-3 text-slate-500 font-medium">ยอดขั้นต่ำ</th>
-                    <th className="text-center px-4 py-3 text-slate-500 font-medium">สถานะ</th>
+                    <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("discounts_name_col")}</th>
+                    <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("col_category")}</th>
+                    <th className="text-right px-4 py-3 text-slate-500 font-medium">{t("discounts_value_col")}</th>
+                    <th className="text-right px-4 py-3 text-slate-500 font-medium">{t("discounts_min_order")}</th>
+                    <th className="text-center px-4 py-3 text-slate-500 font-medium">{t("col_status")}</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -85,7 +87,7 @@ export default function DiscountsPage() {
                       <td className="px-4 py-3">
                         <span className={clsx("text-[11px] px-2 py-0.5 rounded-full font-medium",
                           d.type === "percent" ? "bg-blue-100 text-blue-600" : "bg-emerald-100 text-emerald-600")}>
-                          {d.type === "percent" ? "เปอร์เซ็นต์" : "จำนวนเงิน"}
+                          {d.type === "percent" ? t("discounts_type_percent") : t("discounts_type_fixed")}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right font-bold text-slate-700">
@@ -110,7 +112,7 @@ export default function DiscountsPage() {
               </table>
               {discounts.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
-                  <Percent size={40} strokeWidth={1} /><p>ยังไม่มีส่วนลด</p>
+                  <Percent size={40} strokeWidth={1} /><p>{t("discounts_no_data")}</p>
                 </div>
               )}
             </div>
@@ -122,43 +124,43 @@ export default function DiscountsPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setModal(false)}>
           <div className="bg-white rounded-2xl p-6 w-96 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="font-bold text-lg">{editing ? "แก้ไขส่วนลด" : "เพิ่มส่วนลด"}</h2>
+              <h2 className="font-bold text-lg">{editing ? t("discounts_edit_title") : t("discounts_add")}</h2>
               <button onClick={() => setModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">ชื่อส่วนลด</label>
+                <label className="text-sm font-medium text-slate-700 block mb-1">{t("discounts_name_col")}</label>
                 <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" placeholder="เช่น ลูกค้าใหม่" />
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">ประเภท</label>
+                <label className="text-sm font-medium text-slate-700 block mb-1">{t("promos_type")}</label>
                 <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value as "percent" | "fixed" }))}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
-                  <option value="percent">เปอร์เซ็นต์ (%)</option>
-                  <option value="fixed">จำนวนเงิน (฿)</option>
+                  <option value="percent">{t("discounts_type_percent")} (%)</option>
+                  <option value="fixed">{t("discounts_type_fixed")} (฿)</option>
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">มูลค่า</label>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">{t("discounts_value_col")}</label>
                   <input value={form.value} onChange={e => setForm(p => ({ ...p, value: e.target.value }))} type="number" min="0"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" placeholder="0" />
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">ยอดขั้นต่ำ (฿)</label>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">{t("discounts_min_order")} (฿)</label>
                   <input value={form.minOrder} onChange={e => setForm(p => ({ ...p, minOrder: e.target.value }))} type="number" min="0"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" placeholder="0" />
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
                 </div>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.active} onChange={e => setForm(p => ({ ...p, active: e.target.checked }))} className="w-4 h-4 accent-blue-600" />
-                <span className="text-sm text-slate-700">เปิดใช้งาน</span>
+                <span className="text-sm text-slate-700">{t("discounts_active_label")}</span>
               </label>
             </div>
             <div className="flex gap-2 mt-5">
-              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">ยกเลิก</button>
-              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50">บันทึก</button>
+              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">{t("common_cancel")}</button>
+              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50">{t("common_save")}</button>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import PageShell from "@/components/PageShell";
 import { Monitor, Plus, Wifi, WifiOff } from "lucide-react";
 import clsx from "clsx";
+import { useTranslation } from "@/context/LanguageContext";
 
 const MACHINES = [
   { id:"m1", name:"POS #1 - สุขุมวิท", branch:"สาขาสุขุมวิท", serial:"POS-2024-001", model:"POSPOS Pro X", online:true,  lastSeen:"เมื่อกี้",          sales:285, revenue:98500 },
@@ -14,13 +15,14 @@ const MACHINES = [
 function thb(v: number) { return v.toLocaleString("th-TH"); }
 
 export default function PosMachinesPage() {
+  const t = useTranslation();
   return (
     <PageShell>
       <div className="p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-slate-800">เครื่อง POS</h1>
+          <h1 className="text-xl font-bold text-slate-800">{t("pos_mac_title")}</h1>
           <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700">
-            <Plus size={15}/> เพิ่มเครื่อง
+            <Plus size={15}/> {t("pos_mac_add")}
           </button>
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -40,17 +42,17 @@ export default function PosMachinesPage() {
                   m.online?"bg-emerald-100 text-emerald-600":"bg-slate-100 text-slate-500"
                 )}>
                   {m.online ? <Wifi size={10}/> : <WifiOff size={10}/>}
-                  {m.online ? "ออนไลน์" : "ออฟไลน์"}
+                  {m.online ? t("pos_mac_online") : t("pos_mac_offline")}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3 text-[12px] text-slate-500 mb-4">
-                <div><span className="text-slate-400">สาขา: </span>{m.branch}</div>
+                <div><span className="text-slate-400">{t("pos_mac_branch_label")}: </span>{m.branch}</div>
                 <div><span className="text-slate-400">Serial: </span><span className="font-mono">{m.serial}</span></div>
-                <div><span className="text-slate-400">ออนไลน์ล่าสุด: </span>{m.lastSeen}</div>
+                <div><span className="text-slate-400">{t("pos_mac_last_seen")}: </span>{m.lastSeen}</div>
               </div>
               <div className="bg-slate-50 rounded-xl p-3 flex justify-between">
-                <div><p className="text-[11px] text-slate-400">บิลเดือนนี้</p><p className="font-bold text-slate-700">{m.sales} บิล</p></div>
-                <div className="text-right"><p className="text-[11px] text-slate-400">ยอดขาย</p><p className="font-bold text-blue-600">{thb(m.revenue)} ฿</p></div>
+                <div><p className="text-[11px] text-slate-400">{t("pos_mac_monthly_bills")}</p><p className="font-bold text-slate-700">{m.sales} {t("shift_bills")}</p></div>
+                <div className="text-right"><p className="text-[11px] text-slate-400">{t("pos_mac_revenue")}</p><p className="font-bold text-blue-600">{thb(m.revenue)} ฿</p></div>
               </div>
             </div>
           ))}

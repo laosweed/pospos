@@ -4,71 +4,29 @@ import { useState } from "react";
 import PageShell from "@/components/PageShell";
 import { Check, Zap, Crown, Building2 } from "lucide-react";
 import clsx from "clsx";
+import { useTranslation } from "@/context/LanguageContext";
 
-const PLANS = [
+const PLANS_DATA = [
   {
-    id: "starter",
-    name: "Starter",
-    icon: Zap,
-    price: 299,
-    period: "เดือน",
-    color: "blue",
+    id: "starter", name: "Starter", icon: Zap, price: 299, color: "blue",
     desc: "เหมาะสำหรับร้านค้าขนาดเล็ก",
-    features: [
-      "1 เครื่อง POS",
-      "สินค้าสูงสุด 500 รายการ",
-      "รายงานพื้นฐาน",
-      "บันทึกการขาย",
-      "สต็อกสินค้า",
-      "รองรับ 1 สาขา",
-    ],
-    notIncluded: ["ระบบสมาชิก", "โปรโมชั่น", "รายงานขั้นสูง", "API"],
-    current: false,
+    features: ["1 เครื่อง POS","สินค้าสูงสุด 500 รายการ","รายงานพื้นฐาน","บันทึกการขาย","สต็อกสินค้า","รองรับ 1 สาขา"],
+    notIncluded: ["ระบบสมาชิก","โปรโมชั่น","รายงานขั้นสูง","API"],
+    current: false, badge: null,
   },
   {
-    id: "pro",
-    name: "Pro",
-    icon: Crown,
-    price: 699,
-    period: "เดือน",
-    color: "purple",
+    id: "pro", name: "Pro", icon: Crown, price: 699, color: "purple",
     desc: "เหมาะสำหรับร้านค้าที่กำลังเติบโต",
-    features: [
-      "3 เครื่อง POS",
-      "สินค้าไม่จำกัด",
-      "รายงานขั้นสูง",
-      "ระบบสมาชิก & แต้ม",
-      "โปรโมชั่น & คูปอง",
-      "รองรับ 3 สาขา",
-      "บิลออนไลน์",
-      "แจ้งเตือน LINE",
-    ],
-    notIncluded: ["API เข้าถึง", "White Label"],
-    current: true,
-    badge: "แพ็กเกจปัจจุบัน",
+    features: ["3 เครื่อง POS","สินค้าไม่จำกัด","รายงานขั้นสูง","ระบบสมาชิก & แต้ม","โปรโมชั่น & คูปอง","รองรับ 3 สาขา","บิลออนไลน์","แจ้งเตือน LINE"],
+    notIncluded: ["API เข้าถึง","White Label"],
+    current: true, badge: "current",
   },
   {
-    id: "enterprise",
-    name: "Enterprise",
-    icon: Building2,
-    price: 1999,
-    period: "เดือน",
-    color: "amber",
+    id: "enterprise", name: "Enterprise", icon: Building2, price: 1999, color: "amber",
     desc: "สำหรับธุรกิจขนาดใหญ่ หลายสาขา",
-    features: [
-      "เครื่อง POS ไม่จำกัด",
-      "สินค้าไม่จำกัด",
-      "รายงานทุกรูปแบบ",
-      "ระบบสมาชิก & แต้ม",
-      "โปรโมชั่น & คูปอง",
-      "สาขาไม่จำกัด",
-      "API เข้าถึง",
-      "White Label",
-      "ผู้จัดการบัญชีส่วนตัว",
-      "SLA 99.9%",
-    ],
+    features: ["เครื่อง POS ไม่จำกัด","สินค้าไม่จำกัด","รายงานทุกรูปแบบ","ระบบสมาชิก & แต้ม","โปรโมชั่น & คูปอง","สาขาไม่จำกัด","API เข้าถึง","White Label","ผู้จัดการบัญชีส่วนตัว","SLA 99.9%"],
     notIncluded: [],
-    current: false,
+    current: false, badge: null,
   },
 ];
 
@@ -79,30 +37,31 @@ const COLOR_MAP: Record<string, Record<string, string>> = {
 };
 
 export default function PackagePage() {
+  const t = useTranslation();
   const [billing, setBilling] = useState<"monthly"|"yearly">("monthly");
 
   return (
     <PageShell>
       <div className="p-5 space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-slate-800">เลือกแพ็กเกจ</h1>
-          <p className="text-slate-500">เลือกแพ็กเกจที่เหมาะกับธุรกิจของคุณ</p>
+          <h1 className="text-2xl font-bold text-slate-800">{t("pkg_title")}</h1>
+          <p className="text-slate-500">{t("pkg_subtitle")}</p>
           <div className="inline-flex items-center bg-slate-100 rounded-xl p-1 mt-2">
             <button onClick={() => setBilling("monthly")}
               className={clsx("px-4 py-1.5 rounded-lg text-sm font-medium transition-colors",
                 billing==="monthly" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500")}>
-              รายเดือน
+              {t("pkg_monthly")}
             </button>
             <button onClick={() => setBilling("yearly")}
               className={clsx("px-4 py-1.5 rounded-lg text-sm font-medium transition-colors",
                 billing==="yearly" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500")}>
-              รายปี <span className="text-emerald-500 text-[11px] font-semibold">ประหยัด 20%</span>
+              {t("pkg_yearly")} <span className="text-emerald-500 text-[11px] font-semibold">{t("pkg_save_20")}</span>
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-5 max-w-5xl mx-auto">
-          {PLANS.map(plan => {
+          {PLANS_DATA.map(plan => {
             const Icon = plan.icon;
             const c = COLOR_MAP[plan.color];
             const price = billing === "yearly" ? Math.round(plan.price * 0.8) : plan.price;
@@ -112,7 +71,7 @@ export default function PackagePage() {
                   plan.current ? c.border : "border-transparent")}>
                 {plan.badge && (
                   <div className={clsx("absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[11px] font-bold", c.badge)}>
-                    {plan.badge}
+                    {t("pkg_current")}
                   </div>
                 )}
                 <div className={clsx("w-12 h-12 rounded-2xl flex items-center justify-center mb-4", c.icon)}>
@@ -122,7 +81,7 @@ export default function PackagePage() {
                 <p className="text-[12px] text-slate-400 mb-4">{plan.desc}</p>
                 <div className="mb-5">
                   <span className="text-3xl font-bold text-slate-800">{price.toLocaleString()}</span>
-                  <span className="text-slate-400 text-sm"> ฿/{plan.period}</span>
+                  <span className="text-slate-400 text-sm"> ฿/{t("pkg_monthly").toLowerCase()}</span>
                 </div>
                 <div className="space-y-2 flex-1 mb-5">
                   {plan.features.map(f => (
@@ -139,7 +98,7 @@ export default function PackagePage() {
                   ))}
                 </div>
                 <button className={clsx("w-full py-2.5 rounded-xl font-semibold text-sm transition-colors", c.btn)}>
-                  {plan.current ? "แพ็กเกจปัจจุบัน" : "เลือกแพ็กเกจนี้"}
+                  {plan.current ? t("pkg_current") : t("pkg_select")}
                 </button>
               </div>
             );
@@ -147,10 +106,10 @@ export default function PackagePage() {
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-sm max-w-5xl mx-auto">
-          <h3 className="font-semibold text-slate-800 mb-4">ข้อมูลการสมัคร</h3>
+          <h3 className="font-semibold text-slate-800 mb-4">{t("pkg_subscription_info")}</h3>
           <div className="grid grid-cols-3 gap-4 text-sm">
             {[
-              ["แพ็กเกจปัจจุบัน", "Pro"],
+              [t("pkg_current"), "Pro"],
               ["วันที่เริ่มใช้", "01/02/2026"],
               ["ต่ออายุครั้งถัดไป", "01/04/2026"],
               ["วิธีชำระ", "บัตรเครดิต **** 1234"],

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Plus, Edit2, Trash2, ChefHat, X } from "lucide-react";
+import { useTranslation } from "@/context/LanguageContext";
 
 type Option = { id: number; name: string; price: number };
 type Group = { id: number; name: string; required: boolean; multi: boolean; options: Option[] };
@@ -16,6 +17,7 @@ const INIT: Group[] = [
 let gId = 10; let oId = 100;
 
 export default function ToppingsPage() {
+  const t = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [groups, setGroups] = useState<Group[]>(INIT);
   const [modal, setModal] = useState(false);
@@ -42,12 +44,12 @@ export default function ToppingsPage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">ท็อปปิ้ง / ตัวเลือกสินค้า</h1>
+              <h1 className="text-xl font-bold text-slate-800">{t("toppings_title")}</h1>
               <button onClick={() => open()} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
-                <Plus size={16} /> เพิ่มกลุ่มตัวเลือก
+                <Plus size={16} /> {t("toppings_add")}
               </button>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -57,8 +59,8 @@ export default function ToppingsPage() {
                     <div className="flex items-center gap-2">
                       <ChefHat size={16} className="text-blue-500" />
                       <span className="font-semibold text-slate-800">{g.name}</span>
-                      {g.required && <span className="text-[10px] bg-red-100 text-red-500 px-1.5 py-0.5 rounded-full">จำเป็น</span>}
-                      {g.multi && <span className="text-[10px] bg-blue-100 text-blue-500 px-1.5 py-0.5 rounded-full">หลายรายการ</span>}
+                      {g.required && <span className="text-[10px] bg-red-100 text-red-500 px-1.5 py-0.5 rounded-full">{t("toppings_required")}</span>}
+                      {g.multi && <span className="text-[10px] bg-blue-100 text-blue-500 px-1.5 py-0.5 rounded-full">{t("toppings_multi")}</span>}
                     </div>
                     <div className="flex gap-1">
                       <button onClick={() => open(g)} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg"><Edit2 size={14} /></button>
@@ -82,14 +84,14 @@ export default function ToppingsPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setModal(false)}>
           <div className="bg-white rounded-2xl p-6 w-[480px] shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-lg">{editing ? "แก้ไข" : "เพิ่ม"}กลุ่มตัวเลือก</h2>
+              <h2 className="font-bold text-lg">{editing ? t("toppings_edit_title") : t("toppings_add")}</h2>
               <button onClick={() => setModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
             </div>
             <div className="space-y-3">
-              <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="ชื่อกลุ่ม"
+              <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder={t("toppings_group_name")}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
               <div className="flex gap-4">
-                {[["required","จำเป็น"],["multi","เลือกได้หลาย"]].map(([k,l]) => (
+                {([["required", t("toppings_required")],["multi", t("toppings_option_multi")]] as [string, string][]).map(([k,l]) => (
                   <label key={k} className="flex items-center gap-2 text-sm cursor-pointer">
                     <input type="checkbox" checked={(form as unknown as Record<string, boolean>)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.checked }))} className="accent-blue-600" />
                     {l}
@@ -97,7 +99,7 @@ export default function ToppingsPage() {
                 ))}
               </div>
               <div className="flex gap-2">
-                <input value={of.name} onChange={e => setOf(p => ({ ...p, name: e.target.value }))} placeholder="ชื่อตัวเลือก"
+                <input value={of.name} onChange={e => setOf(p => ({ ...p, name: e.target.value }))} placeholder={t("toppings_option_name")}
                   className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
                 <input value={of.price} onChange={e => setOf(p => ({ ...p, price: e.target.value }))} placeholder="+฿" type="number"
                   className="w-20 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
@@ -113,8 +115,8 @@ export default function ToppingsPage() {
               </div>
             </div>
             <div className="flex gap-2 mt-4">
-              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">ยกเลิก</button>
-              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">บันทึก</button>
+              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">{t("common_cancel")}</button>
+              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">{t("common_save")}</button>
             </div>
           </div>
         </div>

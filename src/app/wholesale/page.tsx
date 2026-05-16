@@ -5,11 +5,13 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Save, RefreshCw } from "lucide-react";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
+import { useTranslation } from "@/context/LanguageContext";
 
 type Row = { id: string; name: string; emoji: string; retailPrice: number; minQty: number; wholesalePrice: number };
 function thb(v: number) { return v.toLocaleString("th-TH", { minimumFractionDigits: 2 }); }
 
 export default function WholesalePage() {
+  const t = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,17 +43,17 @@ export default function WholesalePage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-xl font-bold text-slate-800">ราคาขายส่ง</h1>
-                <p className="text-sm text-slate-500 mt-0.5">กำหนดราคาพิเศษสำหรับลูกค้าที่สั่งซื้อจำนวนมาก</p>
+                <h1 className="text-xl font-bold text-slate-800">{t("wholesale_title")}</h1>
+                <p className="text-sm text-slate-500 mt-0.5">{t("wholesale_desc")}</p>
               </div>
               <button onClick={save} disabled={saving || loading}
                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
-                {saved ? "บันทึกแล้ว ✓" : "บันทึก"}
+                {saved ? t("wholesale_saved") : t("common_save")}
               </button>
             </div>
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -61,11 +63,11 @@ export default function WholesalePage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100">
-                      <th className="text-left px-4 py-3 text-slate-500 font-medium">สินค้า</th>
-                      <th className="text-right px-4 py-3 text-slate-500 font-medium">ราคาปลีก</th>
-                      <th className="text-center px-4 py-3 text-slate-500 font-medium">ขั้นต่ำ (ชิ้น)</th>
-                      <th className="text-center px-4 py-3 text-slate-500 font-medium">ราคาส่ง (฿)</th>
-                      <th className="text-center px-4 py-3 text-slate-500 font-medium">ส่วนลด</th>
+                      <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("wholesale_product")}</th>
+                      <th className="text-right px-4 py-3 text-slate-500 font-medium">{t("wholesale_retail")}</th>
+                      <th className="text-center px-4 py-3 text-slate-500 font-medium">{t("wholesale_min_qty")}</th>
+                      <th className="text-center px-4 py-3 text-slate-500 font-medium">{t("wholesale_price")}</th>
+                      <th className="text-center px-4 py-3 text-slate-500 font-medium">{t("wholesale_discount")}</th>
                     </tr>
                   </thead>
                   <tbody>

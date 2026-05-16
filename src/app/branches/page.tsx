@@ -4,6 +4,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Plus, MapPin, Phone, Edit2, GitBranch, X } from "lucide-react";
+import { useTranslation } from "@/context/LanguageContext";
 
 type Branch = { id: number; name: string; address: string; phone: string; manager: string; active: boolean };
 const INIT: Branch[] = [
@@ -13,6 +14,7 @@ let nextId = 10;
 const EMPTY = { name: "", address: "", phone: "", manager: "", active: true };
 
 export default function BranchesPage() {
+  const t = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [branches, setBranches] = useState<Branch[]>(INIT);
   const [modal, setModal] = useState(false);
@@ -31,12 +33,12 @@ export default function BranchesPage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">สาขา</h1>
+              <h1 className="text-xl font-bold text-slate-800">{t("branches_title")}</h1>
               <button onClick={() => open()} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
-                <Plus size={16} /> เพิ่มสาขา
+                <Plus size={16} /> {t("branches_add")}
               </button>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -50,10 +52,10 @@ export default function BranchesPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-slate-800">{b.name}</h3>
-                          {i === 0 && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">หลัก</span>}
-                          {!b.active && <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full">ปิด</span>}
+                          {i === 0 && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">{t("branches_main")}</span>}
+                          {!b.active && <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded-full">{t("status_closed")}</span>}
                         </div>
-                        <p className="text-[12px] text-slate-500 mt-0.5">ผู้จัดการ: {b.manager}</p>
+                        <p className="text-[12px] text-slate-500 mt-0.5">{t("branches_manager")} {b.manager}</p>
                       </div>
                     </div>
                     <button onClick={() => open(b)} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg"><Edit2 size={14} /></button>
@@ -65,7 +67,7 @@ export default function BranchesPage() {
                 </div>
               ))}
               <button onClick={() => open()} className="bg-white/60 rounded-xl p-5 shadow-sm border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-blue-300 hover:text-blue-400 transition-colors min-h-32">
-                <Plus size={24} /><span className="text-sm font-medium">เพิ่มสาขาใหม่</span>
+                <Plus size={24} /><span className="text-sm font-medium">{t("branches_add_new")}</span>
               </button>
             </div>
           </div>
@@ -75,11 +77,11 @@ export default function BranchesPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setModal(false)}>
           <div className="bg-white rounded-2xl p-6 w-[440px] shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-lg">{editing ? "แก้ไขสาขา" : "เพิ่มสาขา"}</h2>
+              <h2 className="font-bold text-lg">{editing ? t("branches_edit_title") : t("branches_add")}</h2>
               <button onClick={() => setModal(false)} className="text-slate-400"><X size={20} /></button>
             </div>
             <div className="space-y-3">
-              {[["name","ชื่อสาขา"],["manager","ผู้จัดการ"],["phone","เบอร์โทร"],["address","ที่อยู่"]].map(([k,l]) => (
+              {([["name", t("branches_name")],["manager", t("role_manager")],["phone", t("label_phone")],["address", t("label_address")]] as [string, string][]).map(([k,l]) => (
                 <div key={k}>
                   <label className="text-sm font-medium text-slate-700 block mb-1">{l}</label>
                   <input value={(form as unknown as Record<string,string>)[k]} onChange={e => setForm(p => ({ ...p, [k]: e.target.value }))}
@@ -88,12 +90,12 @@ export default function BranchesPage() {
               ))}
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input type="checkbox" checked={form.active} onChange={e => setForm(p => ({ ...p, active: e.target.checked }))} className="accent-blue-600" />
-                เปิดใช้งาน
+                {t("branches_active")}
               </label>
             </div>
             <div className="flex gap-2 mt-4">
-              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">ยกเลิก</button>
-              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">บันทึก</button>
+              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm text-slate-600">{t("common_cancel")}</button>
+              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">{t("common_save")}</button>
             </div>
           </div>
         </div>

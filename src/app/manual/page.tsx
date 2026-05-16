@@ -3,7 +3,7 @@
 import { useState } from "react";
 import PageShell from "@/components/PageShell";
 import { BookOpen, ChevronRight, Search } from "lucide-react";
-import clsx from "clsx";
+import { useTranslation } from "@/context/LanguageContext";
 
 const SECTIONS = [
   {
@@ -44,8 +44,8 @@ const SECTIONS = [
 ];
 
 export default function ManualPage() {
+  const t = useTranslation();
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<string|null>(null);
 
   const allArticles = SECTIONS.flatMap(s => s.articles.map(a => ({ ...a, section:s.title, icon:s.icon })));
   const filtered = search ? allArticles.filter(a => a.title.includes(search)) : [];
@@ -55,11 +55,11 @@ export default function ManualPage() {
       <div className="p-5 space-y-5">
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-white text-center">
           <BookOpen size={40} className="mx-auto mb-3 opacity-80"/>
-          <h1 className="text-2xl font-bold mb-2">ศูนย์ช่วยเหลือ POSPOS</h1>
-          <p className="text-blue-200 mb-5">ค้นหาวิธีใช้งานระบบ</p>
+          <h1 className="text-2xl font-bold mb-2">{t("manual_title")}</h1>
+          <p className="text-blue-200 mb-5">{t("manual_subtitle")}</p>
           <div className="relative max-w-md mx-auto">
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"/>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="ค้นหาบทความ..."
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t("manual_search_placeholder")}
               className="w-full pl-10 pr-4 py-3 rounded-xl text-slate-800 text-sm focus:outline-none shadow-lg"/>
           </div>
         </div>
@@ -67,14 +67,14 @@ export default function ManualPage() {
         {search && (
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b text-sm font-medium text-slate-500">
-              ผลการค้นหา "{search}" ({filtered.length} บทความ)
+              {t("manual_results")} "{search}" ({filtered.length} บทความ)
             </div>
             {filtered.map((a,i) => (
               <div key={i} className="flex items-center gap-3 px-4 py-3 border-b border-slate-50 hover:bg-slate-50 cursor-pointer">
                 <span className="text-xl">{a.icon}</span>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-slate-800">{a.title}</p>
-                  <p className="text-[11px] text-slate-400">{a.section} · อ่าน {a.time}</p>
+                  <p className="text-[11px] text-slate-400">{a.section} · {t("manual_read_time")} {a.time}</p>
                 </div>
                 <ChevronRight size={14} className="text-slate-300"/>
               </div>
@@ -95,7 +95,7 @@ export default function ManualPage() {
                     <div key={i} className="flex items-center gap-2 px-5 py-3 border-b border-slate-50 hover:bg-slate-50 cursor-pointer">
                       <div className="flex-1">
                         <p className="text-sm text-slate-700">{article.title}</p>
-                        <p className="text-[11px] text-slate-400">อ่านประมาณ {article.time}</p>
+                        <p className="text-[11px] text-slate-400">{t("manual_read_time")} {article.time}</p>
                       </div>
                       <ChevronRight size={13} className="text-slate-300 flex-shrink-0"/>
                     </div>

@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import clsx from "clsx";
 import type { Store, Employee, DailySalesSummary } from "@/lib/supabase/types";
+import { useTranslation } from "@/context/LanguageContext";
 
 export interface HourlyPoint { hour: string; today: number; yesterday: number }
 
@@ -41,6 +42,7 @@ export default function DashboardStats({
   yesterdaySummary,
   hourlyData,
 }: DashboardStatsProps) {
+  const t = useTranslation();
   const [viewMode,       setViewMode]       = useState<ViewMode>("sell");
   const [chartMode,      setChartMode]      = useState<ChartMode>("line");
   const [selectedEmployee, setSelectedEmployee] = useState("all");
@@ -64,17 +66,22 @@ export default function DashboardStats({
   const growth = growthPct(totalToday, totalYest);
   const hasData = hourlyData.some(d => d.today > 0 || d.yesterday > 0);
 
+  const PERIODS = [
+    t("dash_today"), t("dash_yesterday"), t("dash_this_week"),
+    t("dash_this_month"), t("dash_this_year"), t("dash_custom"),
+  ];
+
   return (
     <div className="mx-4 my-3 rounded-xl p-4" style={{ background: "#bfdbfe" }}>
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-3.5">
         <h2 className="text-[15px] font-semibold text-blue-950">
-          ยอดขายวันนี้ {dateStr}
+          {t("dash_today_title")} {dateStr}
         </h2>
         <div className="flex gap-1.5">
-          <ModeBtn active={viewMode === "sell"} onClick={() => setViewMode("sell")}>ขาย</ModeBtn>
-          <ModeBtn active={viewMode === "buy"}  onClick={() => setViewMode("buy")}>รับซื้อ</ModeBtn>
+          <ModeBtn active={viewMode === "sell"} onClick={() => setViewMode("sell")}>{t("item_sell")}</ModeBtn>
+          <ModeBtn active={viewMode === "buy"}  onClick={() => setViewMode("buy")}>{t("item_buy")}</ModeBtn>
         </div>
       </div>
 
@@ -88,7 +95,7 @@ export default function DashboardStats({
         <FilterSelect
           value={selectedEmployee}
           options={[
-            { value: "all", label: "👥 พนักงานทั้งหมด" },
+            { value: "all", label: `👥 ${t("dash_all_staff")}` },
             ...employees.map(e => ({ value: e.id, label: `👤 ${e.name}` })),
           ]}
           onChange={setSelectedEmployee}
@@ -105,12 +112,11 @@ export default function DashboardStats({
               onClick={() => setPeriodOpen(v => !v)}
               className="flex items-center gap-2 bg-slate-800 text-white text-[13px] font-semibold px-3.5 py-1.5 rounded-lg"
             >
-              <span className="text-[10px]">⬛</span> เมื่อวาน
+              <span className="text-[10px]">⬛</span> {t("dash_yesterday")}
             </button>
-            {/* Period picker dropdown */}
             {periodOpen && (
               <div className="absolute left-0 top-10 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 min-w-36">
-                {["วันนี้","เมื่อวาน","สัปดาห์นี้","เดือนนี้","ปีนี้","กำหนดเอง"].map(p => (
+                {PERIODS.map(p => (
                   <button
                     key={p}
                     onClick={() => setPeriodOpen(false)}
@@ -134,7 +140,7 @@ export default function DashboardStats({
 
           {/* Total revenue */}
           <div className="pr-6 min-w-0">
-            <p className="text-[12px] text-slate-500 mb-1">ยอดรวม</p>
+            <p className="text-[12px] text-slate-500 mb-1">{t("dash_total_revenue")}</p>
             <p className="text-[26px] font-bold text-sky-500 leading-none">{thb(totalToday)} ฿</p>
             {totalYest > 0 && (
               <p className="text-[12px] text-slate-400 mt-1">{thb(totalYest)} ฿</p>
@@ -143,33 +149,33 @@ export default function DashboardStats({
 
           {/* Growth */}
           <div className="px-6 min-w-0">
-            <p className="text-[12px] text-slate-500 mb-1">การเติบโต</p>
+            <p className="text-[12px] text-slate-500 mb-1">{t("dash_growth")}</p>
             <p className={clsx(
               "text-[26px] font-bold leading-none",
               totalToday > totalYest ? "text-emerald-500" : totalToday < totalYest ? "text-red-500" : "text-emerald-500"
             )}>
               {growth}
             </p>
-            <p className="text-[11px] text-slate-400 mt-1">(จากเมื่อวาน)</p>
+            <p className="text-[11px] text-slate-400 mt-1">{t("dash_from_yesterday")}</p>
           </div>
 
           {/* Grid stats */}
           <div className="flex-1 border border-slate-200 rounded-xl grid grid-cols-3 min-w-0">
             <GridStat
-              label="บิลยกเลิก"
+              label={t("dash_cancelled_bills")}
               value={cancelledToday}
               subValue={cancelledYest}
               href="/sale-history?status=cancelled"
             />
             <GridStat
-              label="บิลขาย"
+              label={t("dash_sale_bills")}
               value={billsToday}
               subValue={billsYest}
               bordered
               href="/sale-history"
             />
             <GridStat
-              label="เฉลี่ย/บิล"
+              label={t("dash_avg_per_bill")}
               value={`${thb(avgToday)} ฿`}
               subValue={avgYest > 0 ? `${thb(avgYest)} ฿` : undefined}
             />
@@ -182,10 +188,10 @@ export default function DashboardStats({
             <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500 text-white flex-shrink-0">
               <Clock size={11} />
             </span>
-            ช่วงเวลา (24 ชั่วโมง) ›
+            {t("dash_24h")}
           </button>
           <button className="flex items-center gap-1.5 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[12px] text-slate-500 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-            <Download size={12} /> ดาวน์โหลดกราฟ
+            <Download size={12} /> {t("dash_download_chart")}
           </button>
           <button
             onClick={() => setChartMode("bar")}
@@ -223,12 +229,12 @@ export default function DashboardStats({
                   <Tooltip
                     formatter={(v: number, name: string) => [
                       `${thb(v)} ฿`,
-                      name === "today" ? "วันนี้" : "เมื่อวาน",
+                      name === "today" ? t("dash_today") : t("dash_yesterday"),
                     ]}
                     contentStyle={{ fontFamily: "Sarabun, sans-serif", fontSize: 12, borderRadius: 8 }}
                   />
                   <Legend
-                    formatter={v => <span style={{ fontSize: 12, color: "#64748b" }}>{v === "today" ? "วันนี้" : "เมื่อวาน"}</span>}
+                    formatter={v => <span style={{ fontSize: 12, color: "#64748b" }}>{v === "today" ? t("dash_today") : t("dash_yesterday")}</span>}
                   />
                   <Bar dataKey="yesterday" fill="#cbd5e1" radius={[3,3,0,0]} name="yesterday" />
                   <Bar dataKey="today"     fill="#0ea5e9" radius={[3,3,0,0]} name="today" />
@@ -241,12 +247,12 @@ export default function DashboardStats({
                   <Tooltip
                     formatter={(v: number, name: string) => [
                       `${thb(v)} ฿`,
-                      name === "today" ? "วันนี้" : "เมื่อวาน",
+                      name === "today" ? t("dash_today") : t("dash_yesterday"),
                     ]}
                     contentStyle={{ fontFamily: "Sarabun, sans-serif", fontSize: 12, borderRadius: 8 }}
                   />
                   <Legend
-                    formatter={v => <span style={{ fontSize: 12, color: "#64748b" }}>{v === "today" ? "วันนี้" : "เมื่อวาน"}</span>}
+                    formatter={v => <span style={{ fontSize: 12, color: "#64748b" }}>{v === "today" ? t("dash_today") : t("dash_yesterday")}</span>}
                   />
                   <Line
                     type="monotone" dataKey="yesterday"
@@ -265,7 +271,7 @@ export default function DashboardStats({
         ) : (
           <div className="flex flex-col items-center justify-center h-48 gap-2">
             <BarChart2 size={52} strokeWidth={1} className="text-slate-200" />
-            <span className="text-[14px] text-slate-400">ไม่มีข้อมูล</span>
+            <span className="text-[14px] text-slate-400">{t("dash_no_data")}</span>
           </div>
         )}
       </div>
@@ -275,7 +281,7 @@ export default function DashboardStats({
         href="/reports"
         className="flex items-center gap-2 mx-auto mt-4 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium px-7 py-2.5 rounded-full transition-colors w-fit"
       >
-        <BarChart2 size={15} /> ข้อมูลเพิ่มเติม
+        <BarChart2 size={15} /> {t("dash_more_data")}
       </Link>
     </div>
   );

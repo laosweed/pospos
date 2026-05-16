@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Plus, Edit2, Trash2, Gift, X, Calendar } from "lucide-react";
 import clsx from "clsx";
+import { useTranslation } from "@/context/LanguageContext";
 
 type Promo = { id: number; name: string; desc: string; startDate: string; endDate: string; type: string; active: boolean };
 
@@ -17,6 +18,15 @@ const INIT: Promo[] = [
 let nextId = 10;
 
 export default function PromotionsPage() {
+  const t = useTranslation();
+  const TYPE_LABELS = () => ({
+    discount: t("promo_type_discount"),
+    buy1get1: t("promo_type_buy1get1"),
+    time: t("promo_type_time"),
+    birthday: t("promo_type_birthday"),
+    bundle: t("promo_type_bundle"),
+  });
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [promos, setPromos] = useState<Promo[]>(INIT);
   const [modal, setModal] = useState(false);
@@ -32,19 +42,17 @@ export default function PromotionsPage() {
   };
   const toggle = (id: number) => setPromos(prev => prev.map(p => p.id === id ? { ...p, active: !p.active } : p));
 
-  const TYPE_LABELS: Record<string, string> = { discount: "ส่วนลด", buy1get1: "ซื้อ 1 แถม 1", time: "ช่วงเวลา", birthday: "วันเกิด", bundle: "แพ็กเกจ" };
-
   return (
     <>
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">โปรโมชั่น</h1>
+              <h1 className="text-xl font-bold text-slate-800">{t("promos_title")}</h1>
               <button onClick={openNew} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
-                <Plus size={16} /> เพิ่มโปรโมชั่น
+                <Plus size={16} /> {t("promos_add")}
               </button>
             </div>
 
@@ -68,7 +76,7 @@ export default function PromotionsPage() {
                   </div>
                   <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center gap-3 text-[12px] text-slate-500">
-                      <span className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">{TYPE_LABELS[p.type] ?? p.type}</span>
+                      <span className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">{TYPE_LABELS()[p.type as keyof ReturnType<typeof TYPE_LABELS>] ?? p.type}</span>
                       <span className="flex items-center gap-1"><Calendar size={11} /> {p.startDate} – {p.endDate}</span>
                     </div>
                     <button onClick={() => toggle(p.id)}
@@ -82,7 +90,7 @@ export default function PromotionsPage() {
 
             {promos.length === 0 && (
               <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-2 bg-white rounded-xl">
-                <Gift size={48} strokeWidth={1} /><p>ยังไม่มีโปรโมชั่น</p>
+                <Gift size={48} strokeWidth={1} /><p>{t("promos_no_data")}</p>
               </div>
             )}
           </div>
@@ -93,43 +101,43 @@ export default function PromotionsPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setModal(false)}>
           <div className="bg-white rounded-2xl p-6 w-[440px] shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="font-bold text-lg">{editing ? "แก้ไขโปรโมชั่น" : "เพิ่มโปรโมชั่น"}</h2>
+              <h2 className="font-bold text-lg">{editing ? t("promos_edit_title") : t("promos_add")}</h2>
               <button onClick={() => setModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">ชื่อโปรโมชั่น</label>
+                <label className="text-sm font-medium text-slate-700 block mb-1">{t("promos_name")}</label>
                 <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">รายละเอียด</label>
+                <label className="text-sm font-medium text-slate-700 block mb-1">{t("promos_desc")}</label>
                 <textarea value={form.desc} onChange={e => setForm(p => ({ ...p, desc: e.target.value }))} rows={2}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400 resize-none" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">ประเภท</label>
+                <label className="text-sm font-medium text-slate-700 block mb-1">{t("promos_type")}</label>
                 <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
-                  {Object.entries(TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  {Object.entries(TYPE_LABELS()).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">วันเริ่ม</label>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">{t("promos_start")}</label>
                   <input type="date" value={form.startDate} onChange={e => setForm(p => ({ ...p, startDate: e.target.value }))}
                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-1">วันสิ้นสุด</label>
+                  <label className="text-sm font-medium text-slate-700 block mb-1">{t("promos_end")}</label>
                   <input type="date" value={form.endDate} onChange={e => setForm(p => ({ ...p, endDate: e.target.value }))}
                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
                 </div>
               </div>
             </div>
             <div className="flex gap-2 mt-5">
-              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">ยกเลิก</button>
-              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50">บันทึก</button>
+              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">{t("common_cancel")}</button>
+              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50">{t("common_save")}</button>
             </div>
           </div>
         </div>

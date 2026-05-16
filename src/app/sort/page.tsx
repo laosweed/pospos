@@ -5,10 +5,12 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { GripVertical, Save, RefreshCw } from "lucide-react";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
+import { useTranslation } from "@/context/LanguageContext";
 
 type Item = { id: string; name: string; emoji: string; sort_order: number; category: string };
 
 export default function SortPage() {
+  const t = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,7 @@ export default function SortPage() {
         .eq("active", true);
       if (data) {
         setItems((data as { id: string; name: string; emoji: string; categories: { name: string } | null }[]).map((p, i) => ({
-          id: p.id, name: p.name, emoji: p.emoji, sort_order: i, category: p.categories?.name ?? "ไม่มีหมวด"
+          id: p.id, name: p.name, emoji: p.emoji, sort_order: i, category: p.categories?.name ?? t("sort_no_category")
         })));
       }
       setLoading(false);
@@ -61,17 +63,17 @@ export default function SortPage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">จัดเรียงสินค้า</h1>
+              <h1 className="text-xl font-bold text-slate-800">{t("sort_title")}</h1>
               <button onClick={saveOrder} disabled={saving || loading}
                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
                 {saving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
-                {saved ? "บันทึกแล้ว ✓" : "บันทึกลำดับ"}
+                {saved ? t("sort_saved") : t("sort_save_order")}
               </button>
             </div>
-            <p className="text-sm text-slate-500">ลากเพื่อจัดเรียงลำดับการแสดงสินค้าในหน้าขาย</p>
+            <p className="text-sm text-slate-500">{t("sort_desc")}</p>
 
             {loading ? (
               <div className="flex justify-center py-16"><div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" /></div>

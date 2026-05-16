@@ -4,6 +4,7 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { Plus, Edit2, Phone, Mail, Truck, X, Search } from "lucide-react";
+import { useTranslation } from "@/context/LanguageContext";
 
 type Vendor = { id: number; name: string; contact: string; phone: string; email: string; category: string; note: string };
 
@@ -17,6 +18,7 @@ let nextId = 10;
 const EMPTY = { name: "", contact: "", phone: "", email: "", category: "วัตถุดิบ", note: "" };
 
 export default function VendorsPage() {
+  const t = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [vendors, setVendors] = useState<Vendor[]>(INIT);
   const [search, setSearch] = useState("");
@@ -39,19 +41,19 @@ export default function VendorsPage() {
       <Navbar onToggleSidebar={() => setSidebarOpen(v => !v)} />
       <div className="flex" style={{ marginTop: 50 }}>
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 230 : 0, background: "#edf1f5" }}>
+        <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">ซัพพลายเออร์</h1>
+              <h1 className="text-xl font-bold text-slate-800">{t("vendors_title")}</h1>
               <button onClick={openNew} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
-                <Plus size={16} /> เพิ่มซัพพลายเออร์
+                <Plus size={16} /> {t("vendors_add")}
               </button>
             </div>
 
             <div className="bg-white rounded-xl p-3 shadow-sm">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ค้นหาซัพพลายเออร์..."
+                <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("vendors_search_placeholder")}
                   className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" />
               </div>
             </div>
@@ -89,7 +91,7 @@ export default function VendorsPage() {
 
             {filtered.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-2 bg-white rounded-xl">
-                <Truck size={48} strokeWidth={1} /><p>ยังไม่มีซัพพลายเออร์</p>
+                <Truck size={48} strokeWidth={1} /><p>{t("vendors_no_data")}</p>
               </div>
             )}
           </div>
@@ -100,11 +102,11 @@ export default function VendorsPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setModal(false)}>
           <div className="bg-white rounded-2xl p-6 w-[440px] shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="font-bold text-lg">{editing ? "แก้ไขซัพพลายเออร์" : "เพิ่มซัพพลายเออร์"}</h2>
+              <h2 className="font-bold text-lg">{editing ? t("vendors_edit_title") : t("vendors_add")}</h2>
               <button onClick={() => setModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
             </div>
             <div className="space-y-4">
-              {[["name","ชื่อบริษัท/ร้าน"],["contact","ชื่อผู้ติดต่อ"],["phone","เบอร์โทร"],["email","อีเมล"]].map(([key, label]) => (
+              {([["name", t("vendors_company")],["contact", t("vendors_contact_person")],["phone", t("label_phone")],["email", t("label_email")]] as [string, string][]).map(([key, label]) => (
                 <div key={key}>
                   <label className="text-sm font-medium text-slate-700 block mb-1">{label}</label>
                   <input value={(form as Record<string, string>)[key]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
@@ -112,21 +114,21 @@ export default function VendorsPage() {
                 </div>
               ))}
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">หมวดหมู่</label>
+                <label className="text-sm font-medium text-slate-700 block mb-1">{t("vendors_category")}</label>
                 <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400">
                   {["วัตถุดิบ","นม/ครีม","บรรจุภัณฑ์","อุปกรณ์","อื่นๆ"].map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 block mb-1">หมายเหตุ</label>
+                <label className="text-sm font-medium text-slate-700 block mb-1">{t("label_note")}</label>
                 <input value={form.note} onChange={e => setForm(p => ({ ...p, note: e.target.value }))}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-400" />
               </div>
             </div>
             <div className="flex gap-2 mt-5">
-              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">ยกเลิก</button>
-              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50">บันทึก</button>
+              <button onClick={() => setModal(false)} className="flex-1 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">{t("common_cancel")}</button>
+              <button onClick={save} disabled={!form.name} className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50">{t("common_save")}</button>
             </div>
           </div>
         </div>
