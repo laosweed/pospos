@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import { Search, Plus, Edit2, Trash2, X } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, X, LayoutGrid } from "lucide-react";
 import clsx from "clsx";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
 import type { Product, Category } from "@/lib/supabase/types";
@@ -24,6 +24,7 @@ export default function SkuPage() {
   const [isNew, setIsNew] = useState(false);
   const [form, setForm] = useState(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const load = async () => {
     const [{ data: prods }, { data: cats }] = await Promise.all([
@@ -55,6 +56,22 @@ export default function SkuPage() {
     setSaving(false);
   };
 
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${STORE_ID}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("product-images")
+      .upload(path, file, { contentType: file.type, upsert: false });
+    if (!error) {
+      const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+      setForm(f => ({ ...f, image_url: data.publicUrl }));
+    } else {
+      alert(`Upload failed: ${error.message}`);
+    }
+    setUploading(false);
+  };
+
   const handleDelete = async (id: string) => {
     await supabase.from("products").delete().eq("id", id);
     setProducts(prev => prev.filter(p => p.id !== id));
@@ -75,12 +92,25 @@ export default function SkuPage() {
                 <Plus size={15}/> {t("common_add_new")}
               </button>
             </div>
-            <div className="bg-white rounded-xl p-3 shadow-sm">
-              <div className="relative">
+            <div className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-2 flex-wrap">
+              <select className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none min-w-24">
+                <option>{t("col_status")}</option>
+              </select>
+              <select className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none min-w-28">
+                <option>{t("col_category")}</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              <select className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none min-w-24">
+                <option>{t("stock_location")}</option>
+              </select>
+              <div className="relative flex-1 min-w-48">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
                 <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t("sku_search_placeholder")}
                   className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"/>
               </div>
+              <button className="flex items-center justify-center w-10 h-10 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50">
+                <LayoutGrid size={16} />
+              </button>
             </div>
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               {loading ? (
@@ -141,7 +171,37 @@ export default function SkuPage() {
               <button onClick={()=>setEditing(null)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
             </div>
             <div className="space-y-4">
-              <div className="text-center text-5xl mb-2">{form.emoji}</div>
+              <div className="flex flex-col items-center gap-2 mb-2">
+                {form.image_url ? (
+                  <img src={form.image_url} alt="" className="w-[120px] h-[120px] object-cover rounded-xl border border-slate-200"/>
+                ) : (
+                  <div className="text-5xl">{form.emoji}</div>
+                )}
+                <div className="flex items-center gap-2">
+                  <label className={clsx(
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer",
+                    uploading ? "bg-slate-200 text-slate-500 cursor-wait" : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                  )}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); e.target.value = ""; }}
+                    />
+                    {uploading ? t("sku_image_uploading") : t("sku_image_upload")}
+                  </label>
+                  {form.image_url && !uploading && (
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, image_url: null }))}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100"
+                    >
+                      {t("sku_image_remove")}
+                    </button>
+                  )}
+                </div>
+              </div>
               {([[t("sku_name_label"),"name","text"],["SKU","sku","text"],["Emoji","emoji","text"]] as [string,string,string][]).map(([l,k,tp])=>(
                 <div key={k}>
                   <label className="block text-xs font-medium text-slate-500 mb-1">{l}</label>

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import {
   Menu, ChevronDown, Calculator, RefreshCw,
-  MapPin, Gauge, Bell,
+  MapPin, Gauge, Coins, Package2, BarChart2,
+  Users, FolderOpen, CalendarRange, Settings, Store,
 } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useLanguage } from "@/context/LanguageContext";
-import type { LanguageCode } from "@/i18n/types";
+import type { Dict, LanguageCode } from "@/i18n/types";
 
 /*
  * Exact CSS from go.pospos.co:
@@ -36,20 +38,45 @@ const LANG_OPTIONS: { code: LanguageCode; flag: string; label: string }[] = [
   { code: "en", flag: "🇬🇧", label: "English" },
 ];
 
+const PAGE_META: Record<string, { icon: React.ReactNode; labelKey: keyof Dict }> = {
+  "/dashboard":      { icon: <Gauge size={13} />,         labelKey: "item_dashboard" },
+  "/buy":            { icon: <Coins size={13} />,         labelKey: "item_buy" },
+  "/stock":          { icon: <Package2 size={13} />,      labelKey: "item_stock" },
+  "/sku":            { icon: <Package2 size={13} />,      labelKey: "item_sku" },
+  "/reports":        { icon: <BarChart2 size={13} />,     labelKey: "item_reports" },
+  "/customers":      { icon: <Users size={13} />,         labelKey: "item_customers" },
+  "/documents":      { icon: <FolderOpen size={13} />,    labelKey: "item_documents" },
+  "/activity":       { icon: <CalendarRange size={13} />, labelKey: "item_activity" },
+  "/settings":       { icon: <Settings size={13} />,      labelKey: "item_settings" },
+};
+
+const DEMO_AVATAR = "https://i.pravatar.cc/60?img=47";
+
 interface NavbarProps {
   onToggleSidebar: () => void;
   storeName?: string;
   employeeName?: string;
+  avatarUrl?: string;
 }
 
 export default function Navbar({
   onToggleSidebar,
   storeName = "ร้านเบเกอรี่ (ตัวอย่าง)",
   employeeName = "ชนิ่น เกษมทรัพย์",
+  avatarUrl,
 }: NavbarProps) {
+  const avatarSrc = avatarUrl || DEMO_AVATAR;
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const { lang, setLang, t } = useLanguage();
+  const pathname = usePathname();
+
+  const matchedPath = Object.keys(PAGE_META).find(p =>
+    pathname === p || pathname.startsWith(p + "/")
+  );
+  const pageMeta = matchedPath ? PAGE_META[matchedPath] : null;
+  const breadcrumbIcon = pageMeta?.icon ?? <Store size={13} />;
+  const breadcrumbLabel = pageMeta ? t(pageMeta.labelKey) : storeName;
 
   const handleLogout = async () => {
     const supabase = createBrowserClient(
@@ -91,9 +118,9 @@ export default function Navbar({
       {/* Page breadcrumb area */}
       <div className="hidden md:flex items-center gap-2 text-white ml-2">
         <span className="flex items-center justify-center rounded-full w-7 h-7" style={{ background: "rgba(0,0,0,0.15)" }}>
-          <Gauge size={13} />
+          {breadcrumbIcon}
         </span>
-        <span className="text-sm font-medium">{storeName}</span>
+        <span className="text-sm font-medium">{breadcrumbLabel}</span>
       </div>
 
       <div className="flex-1" />
@@ -102,7 +129,6 @@ export default function Navbar({
       <div className="flex items-center h-full">
         <NavBtn title="เครื่องคิดเลข"><Calculator size={16} /></NavBtn>
         <NavBtn title="รีเฟรช"><RefreshCw size={16} /></NavBtn>
-        <NavBtn title={t("nav_notifications")} badge={3}><Bell size={16} /></NavBtn>
         <NavBtn title="สาขา"><MapPin size={16} /></NavBtn>
 
         {/* User dropdown — .navbar-nav>.user-menu */}
@@ -114,9 +140,18 @@ export default function Navbar({
             onMouseEnter={e => (e.currentTarget.style.background = N.hoverBg)}
             onMouseLeave={e => (e.currentTarget.style.background = "")}
           >
-            {/* .user-image { width:25px; height:25px; border-radius:50% } */}
-            <span className="w-[25px] h-[25px] rounded-full bg-emerald-400 text-emerald-900 text-[10px] font-bold flex items-center justify-center select-none" style={{ marginTop: -2 }}>
-              {employeeName.charAt(0)}
+            {/* .user-image { width:30px; height:30px; border-radius:50% } + green online dot */}
+            <span className="relative inline-block" style={{ marginTop: -2 }}>
+              <img
+                src={avatarSrc}
+                alt=""
+                className="rounded-full object-cover"
+                style={{ width: 30, height: 30, border: "2px solid rgba(255,255,255,0.85)" }}
+              />
+              <span
+                className="absolute rounded-full"
+                style={{ width: 9, height: 9, background: "#22c55e", border: "2px solid #0d6eb3", right: -1, bottom: -1 }}
+              />
             </span>
             <span className="text-sm hidden sm:inline">{employeeName}</span>
             <ChevronDown size={11} style={{ color: N.textMuted }} />
@@ -129,9 +164,12 @@ export default function Navbar({
               <div className="absolute right-0 top-[50px] bg-white shadow-xl py-0 z-50" style={{ width: 280, borderRadius: "0 0 4px 4px", border: "1px solid #ddd", borderTop: 0 }}>
                 {/* li.user-header { height:175px; background-color:#3c8dbc } — simplified */}
                 <div className="px-4 py-4 text-center" style={{ background: N.bg }}>
-                  <div className="w-[90px] h-[90px] rounded-full bg-white/20 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-2">
-                    {employeeName.charAt(0)}
-                  </div>
+                  <img
+                    src={avatarSrc}
+                    alt=""
+                    className="w-[90px] h-[90px] rounded-full object-cover mx-auto mb-2"
+                    style={{ border: "3px solid rgba(255,255,255,0.5)" }}
+                  />
                   <p className="text-white text-[17px]">{employeeName}</p>
                   <p className="text-white/80 text-[12px]">Manager</p>
                 </div>

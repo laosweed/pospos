@@ -456,6 +456,36 @@ export interface Dict {
   sku_sale_status: string;
   sku_status_on: string;
   sku_status_off: string;
+  sku_image_label: string;
+  sku_image_upload: string;
+  sku_image_remove: string;
+  sku_image_uploading: string;
+  action_sell: string;
+  sell_fee: string;
+  stock_ready_to_sell: string;
+  stock_has_discount: string;
+  stock_trash: string;
+  stock_include_related: string;
+  stock_location: string;
+  stock_unit: string;
+  rep_kpi_cost: string;
+  rep_kpi_discount: string;
+  rep_show_profit: string;
+  rep_clear_btn: string;
+  rep_today: string;
+  rep_export_btn: string;
+  cust_filter: string;
+  cust_id_col: string;
+  cust_type_col: string;
+  cust_level_col: string;
+  cust_birthday_col: string;
+  cust_phone_col: string;
+  cust_type_member: string;
+  cust_level_normal: string;
+  cust_show: string;
+  cust_prev: string;
+  cust_next: string;
+  cust_items: string;
 
   // ── Sort page ────────────────────────────────────────────
   sort_title: string;

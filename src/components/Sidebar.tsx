@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Gauge, Star, LayoutGrid, ChevronLeft,
+  Gauge, Star, LayoutGrid, ChevronLeft, ChevronDown,
   Store, CreditCard, Coins, Users, ShoppingCart,
   ArrowUpDown, Settings, PieChart, BarChart2,
   FolderOpen, Package, Percent, UserCircle,
@@ -183,36 +183,23 @@ export default function Sidebar({
             <p className="text-[11px] truncate" style={{ color: S.menuItemsText }}>{storeEmail}</p>
           </div>
         </div>
-        <span
-          className="inline-block text-white text-[10px] font-bold tracking-widest px-2.5 py-0.5 rounded-sm"
-          style={{ background: "linear-gradient(90deg,#ff003d 0%,#ffc4bd 50%,#ff738b 100%)" }}
-        >
-          {t("sidebar_demo_label")}
-        </span>
-        <span className="text-[10px] ml-1.5" style={{ color: S.menuItemsText }}>
-          {t("sidebar_demo_reset")}
-        </span>
+
       </div>
 
-      {/* ── Search (sidebar-form) ── */}
-      <div className="px-2.5 py-2 flex-shrink-0">
-        <div
-          className="flex rounded-[3px]"
-          style={{ border: `1px solid ${S.searchBorder}`, margin: 0 }}
-        >
-          <input
-            type="text"
-            placeholder={t("sidebar_search_placeholder")}
-            className="flex-1 text-[12px] px-2.5 py-1 border-0 focus:outline-none rounded-l-[2px]"
-            style={{ background: S.searchBg, color: "#666", height: 35, boxShadow: "none" }}
-          />
-          <button
-            className="px-2.5 flex items-center justify-center rounded-r-[2px]"
-            style={{ background: S.searchBg, color: "#999", height: 35, border: "1px solid transparent", boxShadow: "none" }}
-          >
-            <LayoutGrid size={13} />
-          </button>
-        </div>
+      {/* ── Widget row (speedometer / favorites / apps / dropdown) ── */}
+      <div className="flex items-center justify-around px-2 py-2 flex-shrink-0" style={{ background: "#172944" }}>
+        <Link href="/dashboard" className="flex items-center justify-center rounded-full hover:bg-white/10 transition-colors" style={{ width: 36, height: 36, color: "#fff" }} title={t("item_dashboard")}>
+          <Gauge size={20} strokeWidth={1.8} />
+        </Link>
+        <button className="flex items-center justify-center rounded-full hover:bg-white/10 transition-colors" style={{ width: 36, height: 36, color: "#fff" }} title="Favorites">
+          <Star size={20} strokeWidth={1.8} />
+        </button>
+        <button className="flex items-center justify-center rounded-full hover:bg-white/10 transition-colors" style={{ width: 36, height: 36, color: "#fff" }} title="Apps">
+          <LayoutGrid size={18} strokeWidth={1.8} />
+        </button>
+        <button className="flex items-center justify-center rounded-full hover:bg-white/10 transition-colors" style={{ width: 36, height: 36, color: "#fff" }} title="More">
+          <ChevronDown size={18} strokeWidth={2.2} />
+        </button>
       </div>
 
       {/* ── Nav sections ── */}
@@ -278,9 +265,9 @@ export default function Sidebar({
                           <span className="flex-shrink-0 w-[20px] flex items-center justify-center opacity-80">{item.icon}</span>
                           <span className="flex-1 truncate">{t(item.labelKey)}</span>
                           <Star
-                            size={12}
-                            className="flex-shrink-0 opacity-0 group-hover:opacity-40 transition-opacity"
-                            style={{ color: active ? "#fff" : S.subItemText }}
+                            size={13}
+                            className="flex-shrink-0 transition-opacity hover:opacity-100"
+                            style={{ color: active ? "#fff" : S.subItemText, opacity: active ? 0.9 : 0.45 }}
                           />
                         </Link>
                       </li>

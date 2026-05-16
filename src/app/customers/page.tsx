@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import { Search, Plus, Edit2, Phone, Mail, Award, X } from "lucide-react";
+import { Search, Plus, Edit2, Mail, Award, X, Filter, ChevronDown, LayoutGrid, ArrowUpDown, MoreHorizontal } from "lucide-react";
 import clsx from "clsx";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
 import type { Customer } from "@/lib/supabase/types";
@@ -68,29 +68,49 @@ export default function CustomersPage() {
         <main className="flex-1 min-h-[calc(100vh-50px)] overflow-auto" style={{ marginLeft: sidebarOpen ? 200 : 0, background: "#edf1f5" }}>
           <div className="p-5 space-y-4">
 
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">{t("customers_title")}</h1>
-              <button onClick={openNew} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700">
-                <Plus size={15} /> {t("customers_add")}
+            {/* Filter row: filter dropdown + search + Add + grid toggle */}
+            <div className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-2 flex-wrap">
+              <button className="flex items-center gap-1.5 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                <Filter size={13} /> {t("cust_filter")} <ChevronDown size={13} className="text-slate-400" />
               </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500 mb-1">{t("customers_total")}</p>
-                <p className="text-[22px] font-bold text-blue-600">{customers.length} {t("customers_persons")}</p>
-              </div>
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <p className="text-[12px] text-slate-500 mb-1">{t("customers_total_points")}</p>
-                <p className="text-[22px] font-bold text-amber-500">{thb(totalPoints)} {t("customers_points_unit")}</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-3 shadow-sm">
-              <div className="relative">
+              <div className="relative flex-1 min-w-48">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("customers_search_placeholder")}
                   className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400" />
+              </div>
+              <button onClick={openNew} className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+                <Plus size={13} /> {t("customers_add")}
+              </button>
+              <button className="flex items-center justify-center w-10 h-10 border border-slate-200 rounded-lg text-slate-700 bg-slate-100">
+                <LayoutGrid size={16} />
+              </button>
+            </div>
+
+            {/* ค้นหา / เคลียร์ action buttons */}
+            <div className="flex justify-center gap-2">
+              <button className="flex items-center gap-1.5 px-5 py-2 rounded-lg text-white text-sm font-medium" style={{ background: "#0284c7" }}>
+                <Search size={14} /> {t("common_search")}
+              </button>
+              <button className="flex items-center gap-1.5 px-5 py-2 rounded-lg border border-slate-200 text-sm text-slate-600 bg-white hover:bg-slate-50">
+                <Filter size={14} /> {t("rep_clear_btn")}
+              </button>
+            </div>
+
+            {/* Stats line: count + Show + pagination */}
+            <div className="flex items-center justify-between text-sm text-slate-600 px-1">
+              <span>{filtered.length} {t("cust_items")}</span>
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5">
+                  {t("cust_show")}
+                  <select className="border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none">
+                    <option>10</option><option>25</option><option>50</option>
+                  </select>
+                </span>
+                <div className="flex items-center gap-0">
+                  <button className="px-3 py-1 border border-slate-200 rounded-l text-xs text-slate-500 hover:bg-slate-50">{t("cust_prev")}</button>
+                  <button className="px-3 py-1 border-y border-slate-200 text-xs font-semibold bg-white text-slate-700">1</button>
+                  <button className="px-3 py-1 border border-slate-200 rounded-r text-xs text-slate-500 hover:bg-slate-50">{t("cust_next")}</button>
+                </div>
               </div>
             </div>
 
@@ -101,39 +121,48 @@ export default function CustomersPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100">
-                      <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("label_full_name")}</th>
-                      <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("col_contact")}</th>
-                      <th className="text-center px-4 py-3 text-slate-500 font-medium">{t("col_tier")}</th>
-                      <th className="text-right px-4 py-3 text-slate-500 font-medium">{t("col_points")}</th>
-                      <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("col_member_since")}</th>
+                      <th className="px-3 py-3 w-8 text-center text-slate-400"><MoreHorizontal size={14} /></th>
+                      <th className="px-3 py-3 w-8 text-center"><input type="checkbox" className="w-3.5 h-3.5 accent-blue-600" /></th>
+                      <th className="text-left px-4 py-3 text-slate-500 font-medium">
+                        <span className="inline-flex items-center gap-1">{t("cust_id_col")} <ArrowUpDown size={11} className="text-slate-300" /></span>
+                      </th>
+                      <th className="text-left px-4 py-3 text-slate-500 font-medium">
+                        <span className="inline-flex items-center gap-1">{t("label_full_name")} <ArrowUpDown size={11} className="text-slate-300" /></span>
+                      </th>
+                      <th className="text-left px-4 py-3 text-slate-500 font-medium">
+                        <span className="inline-flex items-center gap-1">{t("cust_type_col")} <ArrowUpDown size={11} className="text-slate-300" /></span>
+                      </th>
+                      <th className="text-left px-4 py-3 text-slate-500 font-medium">
+                        <span className="inline-flex items-center gap-1">{t("cust_level_col")} <ArrowUpDown size={11} className="text-slate-300" /></span>
+                      </th>
+                      <th className="text-left px-4 py-3 text-slate-500 font-medium">{t("cust_phone_col")}</th>
+                      <th className="text-left px-4 py-3 text-slate-500 font-medium">
+                        <span className="inline-flex items-center gap-1">{t("cust_birthday_col")} <ArrowUpDown size={11} className="text-slate-300" /></span>
+                      </th>
                       <th className="px-4 py-3" />
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map(c => {
+                    {filtered.map((c, idx) => {
                       const tier = tierLabel(c.points);
-                      const joined = new Date(c.created_at).toLocaleDateString("th-TH");
+                      const custId = `M${String(idx).padStart(6, "0")}`;
                       return (
                         <tr key={c.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                          <td className="px-3 py-3 text-center text-slate-400 hover:text-slate-600 cursor-pointer"><MoreHorizontal size={14} /></td>
+                          <td className="px-3 py-3 text-center"><input type="checkbox" className="w-3.5 h-3.5 accent-blue-600" /></td>
+                          <td className="px-4 py-3 font-mono text-[12px] text-blue-600">{custId}</td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 text-sm font-bold flex items-center justify-center flex-shrink-0">{c.name[0]}</div>
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 text-xs font-bold flex items-center justify-center flex-shrink-0">{c.name[0]}</div>
                               <span className="font-medium text-slate-800">{c.name}</span>
                             </div>
                           </td>
+                          <td className="px-4 py-3 text-slate-600">{t("cust_type_member")}</td>
                           <td className="px-4 py-3">
-                            <div className="space-y-0.5">
-                              {c.phone && <p className="text-slate-600 flex items-center gap-1"><Phone size={11} />{c.phone}</p>}
-                              {c.email && <p className="text-slate-400 text-[12px] flex items-center gap-1"><Mail size={11} />{c.email}</p>}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-center">
                             <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ color: tier.color, background: tier.bg }}>{tier.label}</span>
                           </td>
-                          <td className="px-4 py-3 text-right">
-                            <span className="flex items-center justify-end gap-1 font-bold text-amber-500"><Award size={12} />{thb(c.points)}</span>
-                          </td>
-                          <td className="px-4 py-3 text-slate-400 text-[12px]">{joined}</td>
+                          <td className="px-4 py-3 text-slate-600">{c.phone ?? "-"}</td>
+                          <td className="px-4 py-3 text-slate-400 text-[12px]">{c.email ? <span title={c.email} className="inline-flex items-center gap-1"><Mail size={11}/>{c.email.slice(0,18)}</span> : "-"}</td>
                           <td className="px-4 py-3">
                             <button onClick={() => openEdit(c)} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit2 size={13} /></button>
                           </td>

@@ -88,23 +88,7 @@ export default function StoreBanner({ store }: StoreBannerProps) {
         </div>
       </div>
 
-      {/* DEMO stamp */}
-      <div
-        className="absolute flex items-center justify-center"
-        style={{
-          right: 68, top: "50%", transform: "translateY(-50%) rotate(-15deg)",
-          width: 88, height: 88,
-          border: "4px dashed rgba(255,50,50,0.85)",
-          borderRadius: "50%",
-        }}
-      >
-        <span
-          className="font-extrabold text-[16px] tracking-wider"
-          style={{ color: "rgba(255,50,50,0.85)" }}
-        >
-          DEMO
-        </span>
-      </div>
+
     </div>
   );
 }

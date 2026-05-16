@@ -5,8 +5,8 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import {
   Search, Trash2, Plus, Minus, X, CreditCard, Banknote, QrCode,
-  SlidersHorizontal, ShoppingCart, Bell, LayoutGrid, ChevronDown,
-  Users, Archive, PauseCircle, DollarSign, MoreVertical, Percent,
+  SlidersHorizontal, ShoppingCart, Bell, Calculator, ChevronDown,
+  Users, Archive, PauseCircle, DollarSign, MoreVertical,
 } from "lucide-react";
 import clsx from "clsx";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
@@ -253,7 +253,7 @@ export default function SellPage() {
                 </button>
 
                 <ToolbarBtn title={t("nav_notifications")}><Bell size={16} /></ToolbarBtn>
-                <ToolbarBtn title="Grid"><LayoutGrid size={16} /></ToolbarBtn>
+                <ToolbarBtn title="Calculator"><Calculator size={16} /></ToolbarBtn>
 
                 {/* Search bar with blue button */}
                 <div className="flex flex-1 ml-1">
@@ -305,13 +305,6 @@ export default function SellPage() {
                               className="w-full h-full object-cover"
                               loading="lazy"
                             />
-                            {/* Badge icon (top-right) */}
-                            <span
-                              className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center"
-                              style={{ background: "rgba(0,0,0,0.45)" }}
-                            >
-                              <Percent size={13} className="text-white" />
-                            </span>
                             {/* Cart quantity badge */}
                             {inCart && (
                               <span className="absolute top-2 left-2 w-6 h-6 bg-blue-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow">
@@ -337,16 +330,23 @@ export default function SellPage() {
               className="flex flex-col flex-shrink-0 border-l"
               style={{ width: 320, background: "#fff" }}
             >
-              {/* Top summary line */}
-              <div className="flex items-center justify-between px-4 py-2 border-b" style={{ background: "#f8f8f8" }}>
-                <span className="text-sm text-slate-500">{t("sell_subtotal")}</span>
-                <span className="text-sm font-semibold text-slate-700">{thb(total)} ฿</span>
-              </div>
-
-              {/* Large total */}
-              <div className="px-4 pt-4 pb-2">
-                <p className="text-sm text-slate-500 mb-1">{t("sell_net_total")}</p>
-                <p className="text-4xl font-bold" style={{ color: "#0d6eb3" }}>{thb(total)} ฿</p>
+              {/* Summary rows — รวม / ค่าธรรมเนียม / รวมสุทธิ */}
+              <div className="px-4 pt-4 pb-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[15px] text-slate-500">{t("sell_subtotal")}</span>
+                  <span className="text-[15px] font-medium text-slate-700">{thb(subtotal)} ฿</span>
+                </div>
+                <button className="w-full flex items-center justify-between border border-slate-200 rounded-md px-3 py-2 hover:bg-slate-50 transition-colors">
+                  <span className="text-[14px] text-slate-500">{t("sell_fee")}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-[14px] font-medium text-slate-700">{thb(0)} ฿</span>
+                    <ChevronDown size={14} className="text-slate-400" />
+                  </span>
+                </button>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[18px] font-semibold text-slate-700">{t("sell_net_total")}</span>
+                  <span className="text-[28px] font-bold leading-none" style={{ color: "#0284c7" }}>{thb(total)} ฿</span>
+                </div>
               </div>
 
               {/* Cart items (scrollable, hidden when empty → shows branding) */}
@@ -395,8 +395,14 @@ export default function SellPage() {
                   <button
                     onClick={() => cart.length > 0 && setShowPayment(true)}
                     disabled={cart.length === 0}
-                    className="flex-1 py-4 rounded-2xl text-center font-bold text-xl transition-colors disabled:opacity-60"
-                    style={{ background: "#b3ddf5", color: "#0d6eb3" }}
+                    className="flex-1 py-4 text-center font-semibold text-white transition-all disabled:cursor-not-allowed"
+                    style={{
+                      background: "#0284c7",
+                      borderRadius: 20,
+                      fontSize: 18,
+                      boxShadow: "rgba(0,0,0,0.25) 1px 1px 4px 0",
+                      opacity: cart.length === 0 ? 0.85 : 1,
+                    }}
                   >
                     {t("sell_pay")}
                     <span className="block text-sm font-normal mt-0.5">( F12 )</span>
@@ -451,6 +457,7 @@ export default function SellPage() {
             <ActionBtn
               icon={<DollarSign size={16} />}
               label={t("sell_summary")}
+              shortcut="Ctrl+Q"
               color="#fff"
               textColor="#555"
               border

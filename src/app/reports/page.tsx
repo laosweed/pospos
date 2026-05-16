@@ -5,7 +5,8 @@ import PageShell from "@/components/PageShell";
 import {
   BarChart2, ShoppingBag, Users, TrendingUp, CreditCard,
   Truck, FileText, StickyNote, Layers, Monitor, Gift, Store,
-  Calendar, Download, Search,
+  Calendar, Download, Search, Receipt, Percent, ChevronDown,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
 import clsx from "clsx";
@@ -76,62 +77,139 @@ export default function ReportsPage() {
   const avgPerBill   = totalBills > 0 ? totalRevenue / totalBills : 0;
   const maxRevenue   = Math.max(...summary.map(d => d.total_revenue), 1);
 
+  const today = new Date();
+  const dateStr = `${String(today.getDate()).padStart(2,"0")}/${String(today.getMonth()+1).padStart(2,"0")}/${today.getFullYear()}`;
+
   return (
     <PageShell>
       <div className="p-4 space-y-3">
-        {/* ── Page header ── */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-slate-800">{t("item_reports")}</h1>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-600 px-3 py-1.5 rounded text-sm hover:bg-slate-50">
-              <Download size={13} /> {t("rep_export_excel")}
-            </button>
-            <div className="flex gap-0.5 bg-white rounded border border-slate-200 p-0.5">
-              {(["7","30","90"] as const).map(v => (
-                <button key={v} onClick={() => setPeriod(v)}
-                  className={clsx("px-3 py-1 rounded text-xs font-medium transition-colors",
-                    period === v ? "bg-[#3c8dbc] text-white" : "text-slate-600 hover:bg-slate-100"
-                  )}>
-                  {v} {t("rep_days")}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── KPI summary cards ── */}
+        {/* ── 4 KPI cards (demo style: white card + colored icon column) ── */}
         <div className="grid grid-cols-4 gap-3">
-          <InfoBox icon={TrendingUp} color="#3c8dbc" label={t("rep_kpi_revenue")} value={`${thb(totalRevenue)} ฿`} />
-          <InfoBox icon={ShoppingBag} color="#00a65a" label={t("rep_kpi_bills")} value={`${totalBills} ${t("shift_bills")}`} />
-          <InfoBox icon={BarChart2} color="#f39c12" label={t("rep_kpi_avg")} value={`${thb(avgPerBill)} ฿`} />
-          <InfoBox icon={TrendingUp} color="#dd4b39" label={t("rep_kpi_profit")} value={`${thb(totalRevenue * 0.3)} ฿`} />
+          <KPICard icon={BarChart2} color="#f39c12" label={t("rep_kpi_profit")} value={thb(totalRevenue * 0.3)} />
+          <KPICard icon={TrendingUp} color="#22c55e" label={t("rep_kpi_revenue")} value={thb(totalRevenue)} />
+          <KPICard
+            icon={Receipt}
+            color="#3b82f6"
+            label={t("rep_kpi_cost")}
+            value={thb(totalRevenue * 0.6)}
+            subText={
+              <>
+                <span className="text-slate-500">สินค้า: {thb(totalRevenue * 0.55)}</span>
+                <span className="text-slate-400"> + </span>
+                <span className="text-slate-500">ค่าใช้จ่าย: {thb(totalRevenue * 0.05)}</span>
+              </>
+            }
+          />
+          <KPICard
+            icon={Percent}
+            color="#ef4444"
+            label={t("rep_kpi_discount")}
+            value={thb(0)}
+            subText={
+              <>
+                <span className="text-slate-500">ลดสินค้า: 0.00</span>
+                <span className="text-slate-400"> + </span>
+                <span className="text-slate-500">ลดท้ายบิล: 0.00</span>
+              </>
+            }
+          />
         </div>
 
-        {/* ── Report tabs ── */}
-        <div className="bg-white rounded shadow-sm">
-          <div className="flex items-center border-b border-slate-200 overflow-x-auto">
-            {TABS.map(tabItem => {
-              const Icon = tabItem.icon;
-              const active = tab === tabItem.id;
-              return (
-                <button
-                  key={tabItem.id}
-                  onClick={() => setTab(tabItem.id)}
-                  className={clsx(
-                    "flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium whitespace-nowrap border-b-2 transition-colors flex-shrink-0",
-                    active
-                      ? "border-[#3c8dbc] text-[#3c8dbc]"
-                      : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-                  )}
-                >
-                  <Icon size={13} />
-                  {tabItem.label}
-                </button>
-              );
-            })}
-          </div>
+        {/* ── Toggle row: ผลกำไร checkbox + branch selector ── */}
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2 cursor-pointer">
+            <input type="checkbox" defaultChecked className="w-4 h-4 accent-blue-600" />
+            <span className="text-[13px] text-slate-700">{t("rep_show_profit")}</span>
+          </label>
+          <button className="flex-1 flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50">
+            <span className="flex items-center gap-2 text-[13px] text-slate-700">
+              <Store size={13} className="text-slate-400" />
+              ร้านเบเกอรี่ (ตัวอย่าง)
+            </span>
+            <ChevronDown size={14} className="text-slate-400" />
+          </button>
+        </div>
 
-          <div className="p-4">
+        {/* ── Main 2-column layout: LEFT vertical menu | RIGHT content ── */}
+        <div className="bg-white rounded shadow-sm flex overflow-hidden" style={{ minHeight: 500 }}>
+
+          {/* Left vertical sub-menu */}
+          <aside className="flex-shrink-0 border-r border-slate-200" style={{ width: 180 }}>
+            <button className="w-full flex items-center justify-between px-3 py-2.5 text-[12px] font-medium text-white bg-[#3c8dbc] border-b border-slate-200">
+              ซ่อนเมนู <ChevronLeft size={12} />
+            </button>
+            <nav className="py-1">
+              {TABS.map(tabItem => {
+                const Icon = tabItem.icon;
+                const active = tab === tabItem.id;
+                return (
+                  <button
+                    key={tabItem.id}
+                    onClick={() => setTab(tabItem.id)}
+                    className={clsx(
+                      "w-full flex items-center gap-2 px-3 py-2.5 text-[13px] text-left transition-colors",
+                      active
+                        ? "bg-[#3c8dbc] text-white font-semibold"
+                        : "text-slate-600 hover:bg-slate-50"
+                    )}
+                  >
+                    <Icon size={14} className="flex-shrink-0" />
+                    <span className="truncate">{tabItem.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </aside>
+
+          {/* Right content area */}
+          <div className="flex-1 min-w-0 p-4 space-y-3">
+            {/* Filter row: date range + search + action buttons */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-2 text-[13px] text-slate-700 min-w-24">
+                {t("rep_today")} <ChevronDown size={13} className="text-slate-400" />
+              </button>
+              <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden">
+                <button className="px-2 py-2 text-slate-400 hover:bg-slate-50"><ChevronLeft size={14} /></button>
+                <span className="px-2 py-2 text-[13px] text-slate-700 border-l border-r border-slate-200 flex items-center gap-1.5">
+                  <Calendar size={13} className="text-slate-400" />
+                  {dateStr} 00:00 - {dateStr} 23:59
+                </span>
+                <button className="px-2 py-2 text-slate-400 hover:bg-slate-50"><ChevronRight size={14} /></button>
+              </div>
+              <button className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-2 text-[13px] text-slate-700 min-w-20">
+                {t("common_all")} <ChevronDown size={13} className="text-slate-400" />
+              </button>
+              <div className="relative flex-1 min-w-32">
+                <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={search} onChange={e => setSearch(e.target.value)}
+                  placeholder={t("common_search")}
+                  className="w-full pl-7 pr-3 py-2 border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:border-blue-400"
+                />
+              </div>
+              <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-[13px] font-medium" style={{ background: "#0284c7" }}>
+                <Search size={13} /> {t("common_search")}
+              </button>
+              <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-white text-[13px] font-medium" style={{ background: "#22c55e" }}>
+                <Download size={13} /> {t("rep_export_btn")} <ChevronDown size={11} />
+              </button>
+              <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[13px] text-slate-600 hover:bg-slate-50">
+                <Calendar size={13} /> {t("rep_clear_btn")}
+              </button>
+              {/* Period: 7/30/90 day quick filters preserved */}
+              <div className="flex gap-0.5 bg-white rounded border border-slate-200 p-0.5">
+                {(["7","30","90"] as const).map(v => (
+                  <button key={v} onClick={() => setPeriod(v)}
+                    className={clsx("px-2 py-1 rounded text-[11px] font-medium transition-colors",
+                      period === v ? "bg-[#3c8dbc] text-white" : "text-slate-600 hover:bg-slate-100"
+                    )}>
+                    {v} {t("rep_days")}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tab content */}
             {loading ? (
               <div className="flex justify-center py-16">
                 <div className="animate-spin w-8 h-8 border-2 border-[#3c8dbc] border-t-transparent rounded-full" />
@@ -387,16 +465,18 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
-function InfoBox({ icon: Icon, color, label, value }: { icon: typeof TrendingUp; color: string; label: string; value: string }) {
+function KPICard({ icon: Icon, color, label, value, subText }: { icon: typeof TrendingUp; color: string; label: string; value: string; subText?: React.ReactNode }) {
   return (
-    <div className="bg-white flex items-stretch overflow-hidden" style={{ minHeight: 90, borderRadius: 2, boxShadow: "0 1px 1px rgba(0,0,0,0.1)", marginBottom: 15 }}>
-      <div className="flex items-center justify-center flex-shrink-0" style={{ width: 90, background: color, borderRadius: "2px 0 0 2px" }}>
-        <Icon size={45} className="text-white" strokeWidth={1.5} />
+    <div className="flex bg-white rounded-[10px] overflow-hidden shadow-sm">
+      <div className="flex items-center justify-center flex-shrink-0" style={{ background: color, width: 60 }}>
+        <Icon size={26} className="text-white" />
       </div>
-      <div style={{ padding: "5px 10px", marginLeft: 0 }} className="min-w-0 flex flex-col justify-center">
-        <p style={{ textTransform: "uppercase", fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} className="text-slate-500">{label}</p>
-        <p style={{ fontWeight: "bold", fontSize: 18 }} className="text-slate-800 truncate">{value}</p>
+      <div className="flex-1 min-w-0 px-3 py-2.5">
+        <p className="text-[13px] text-slate-500 mb-0.5 truncate">{label}</p>
+        <p className="text-[22px] font-bold leading-none" style={{ color }}>{value}</p>
+        {subText && <p className="text-[10px] mt-1.5 truncate">{subText}</p>}
       </div>
     </div>
   );
 }
+

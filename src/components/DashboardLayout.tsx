@@ -24,6 +24,7 @@ export default function DashboardLayout({
         onToggleSidebar={() => setSidebarOpen((v) => !v)}
         storeName={store.name}
         employeeName={employee.name}
+        avatarUrl={employee.avatar_url ?? undefined}
       />
 
       <div className="flex" style={{ marginTop: 50 }}>

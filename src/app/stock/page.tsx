@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import { Search, Plus, Edit2, Package, AlertTriangle } from "lucide-react";
+import { Search, Plus, Edit2, Package, AlertTriangle, Check, Tag, Trash2, AlertCircle, XCircle, LayoutGrid } from "lucide-react";
 import clsx from "clsx";
 import { supabase, STORE_ID } from "@/lib/supabase/browser";
 import type { Product } from "@/lib/supabase/types";
@@ -51,10 +51,6 @@ export default function StockPage() {
      (filter === "out" && p.stock === 0))
   );
 
-  const totalValue = products.reduce((s, p) => s + p.cost * p.stock, 0);
-  const lowCount  = products.filter(p => p.stock > 0 && p.stock <= MIN_STOCK).length;
-  const outCount  = products.filter(p => p.stock === 0).length;
-
   const saveStock = async (id: string) => {
     const val = parseInt(editStock);
     if (isNaN(val) || val < 0) { setEditId(null); return; }
@@ -78,38 +74,66 @@ export default function StockPage() {
                 <Plus size={15} /> {t("stock_add_product")}
               </button>
             </div>
-            <div className="grid grid-cols-4 gap-3">
-              {[
-                { label: t("stock_all_products"), value:`${products.length} ${t("stock_items")}`, color:"#3b82f6" },
-                { label: t("stock_value"),        value:`${thb(totalValue)} ฿`,                   color:"#10b981" },
-                { label: t("stock_low_stock"),    value:`${lowCount} ${t("stock_items")}`,         color:"#f59e0b" },
-                { label: t("stock_out_of_stock"), value:`${outCount} ${t("stock_items")}`,         color:"#ef4444" },
-              ].map(c => (
-                <div key={c.label} className="bg-white rounded-xl p-4 shadow-sm">
-                  <p className="text-[12px] text-slate-500 mb-1">{c.label}</p>
-                  <p className="text-[18px] font-bold" style={{ color: c.color }}>{c.value}</p>
-                </div>
+            {/* Status pills — 5 colored filter chips matching demo */}
+            <div className="grid grid-cols-5 gap-3">
+              {([
+                { v: "all" as const, label: t("stock_ready_to_sell"), color: "#22c55e", Icon: Check },
+                { v: "all" as const, label: t("stock_has_discount"),  color: "#3b82f6", Icon: Tag },
+                { v: "all" as const, label: t("stock_trash"),         color: "#a855f7", Icon: Trash2 },
+                { v: "low" as const, label: t("stock_filter_low"),    color: "#f59e0b", Icon: AlertCircle },
+                { v: "out" as const, label: t("stock_filter_out"),    color: "#ef4444", Icon: XCircle },
+              ]).map((p, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setFilter(p.v)}
+                  className={clsx(
+                    "flex items-center gap-2 bg-white rounded-full px-3 py-2 shadow-sm border transition-all hover:-translate-y-0.5",
+                    filter === p.v ? "border-blue-400 ring-2 ring-blue-100" : "border-slate-200"
+                  )}
+                >
+                  <span
+                    className="flex items-center justify-center w-7 h-7 rounded-full text-white flex-shrink-0"
+                    style={{ background: p.color }}
+                  >
+                    <p.Icon size={14} />
+                  </span>
+                  <span className="text-[13px] font-medium text-slate-700 truncate">{p.label}</span>
+                </button>
               ))}
             </div>
-            <div className="bg-white rounded-xl p-3 shadow-sm flex gap-3 flex-wrap">
+
+            {/* Include related checkbox */}
+            <label className="flex items-center gap-2 text-[13px] text-slate-600 cursor-pointer">
+              <input type="checkbox" className="w-4 h-4 accent-blue-600" />
+              {t("stock_include_related")}
+            </label>
+
+            {/* Filter bar — 4 dropdowns + search + ค้นหา button + grid toggle */}
+            <div className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-2 flex-wrap">
+              <select className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none min-w-24">
+                <option>{t("col_status")}</option>
+              </select>
+              <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
+                className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none min-w-28">
+                {categories.map(c => <option key={c}>{c}</option>)}
+              </select>
+              <select className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none min-w-24">
+                <option>{t("stock_location")}</option>
+              </select>
+              <select className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none min-w-20">
+                <option>{t("stock_unit")}</option>
+              </select>
               <div className="relative flex-1 min-w-48">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("stock_search_placeholder")}
                   className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400"/>
               </div>
-              <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
-                className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
-                {categories.map(c => <option key={c}>{c}</option>)}
-              </select>
-              <div className="flex gap-1">
-                {([["all", t("stock_filter_all")],["low", t("stock_filter_low")],["out", t("stock_filter_out")]] as const).map(([v,l]) => (
-                  <button key={v} onClick={() => setFilter(v)}
-                    className={clsx("px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                      filter===v?"bg-blue-600 text-white":"bg-slate-100 text-slate-600 hover:bg-slate-200")}>
-                    {l}
-                  </button>
-                ))}
-              </div>
+              <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ background: "#0284c7" }}>
+                <Search size={14} /> {t("common_search")}
+              </button>
+              <button className="flex items-center justify-center w-10 h-10 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50">
+                <LayoutGrid size={16} />
+              </button>
             </div>
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               {loading ? (
